@@ -9,6 +9,8 @@ Pair with:
 
 - `docs/FIELD-MANUAL.md` — full setup walkthrough (Sections 0–9)
 - `docs/CHEATSHEET.md` — one-page daily-ops reference
+- `docs/RECOVERY.md` — what to do if the dashboard's Update button leaves the gateway dead
+- `docs/MODELS.md` — primary / fallbacks / heartbeat roles + how to swap any slot (every slug is `openrouter/`-prefixed; see file for why)
 - `docs/WHEN-THINGS-GO-WRONG.md` — pre-written prompts for common failures; the user can paste a section straight into your chat if they're stuck
 
 ---
@@ -25,9 +27,10 @@ Pair with:
 - Config: `~/.openclaw/openclaw.json` (auth token at `.gateway.auth.token`)
 - API key: `~/.openclaw/.env` (`OPENROUTER_API_KEY=...`)
 - Dashboard URL stored at `~/.openclaw/dashboard-url` (written by `install-oraclaw.sh` at end of install; read by `scripts/open-dashboard.sh` / `.ps1` helpers)
-- Models: primary `openrouter/elephant-alpha`; 6 free fallbacks (minimax, nvidia, google, z-ai, qwen, `openrouter/free`)
-- Custom model catalogue entry for `elephant-alpha` at `~/.openclaw/agents/main/agent/models.json`
-- Heartbeat: one cron job every 6 hours; `isolatedSession: true` keeps the Main and Heartbeat chats separate
+- Models: every slug is prefixed `openrouter/` so they route through the OpenRouter plugin (one API key). Primary: `openrouter/inclusionai/ling-2.6-flash:free`. 5 free fallbacks: `openrouter/google/gemma-4-31b-it:free`, `openrouter/nvidia/nemotron-3-super-120b-a12b:free`, `openrouter/minimax/minimax-m2.5:free`, `openrouter/z-ai/glm-4.5-air:free`, `openrouter/qwen/qwen3-coder:free`.
+- Heartbeat model override: `openrouter/meta-llama/llama-3.2-3b-instruct:free` + `lightContext: true`. Much smaller than the main chain, because the recurring background check-ins fire far more often than user-initiated work.
+- Heartbeat schedule: one cron job every 6 hours; `isolatedSession: true` keeps the Main and Heartbeat chats separate.
+- Update-safety safety net: (A) systemd `Restart=always` drop-in, so the Control UI "Update" button's in-process restart can't leave the gateway dead. (B) user-level watchdog timer at `~/.config/systemd/user/openclaw-gateway-watchdog.timer` that probes `localhost:18789/health` every 60 s and restarts the service on two consecutive failures. See `docs/RECOVERY.md` for the one-command manual escape hatch.
 
 ## Security posture (applied by `scripts/install-oraclaw.sh`)
 
@@ -49,7 +52,9 @@ Pair with:
 | Firewall status | `sudo ufw status` |
 | fail2ban status | `sudo fail2ban-client status sshd` |
 | Rotate gateway token | `bash ~/oraclaw/scripts/rotate-gateway-token.sh` |
-| Update OpenClaw | `source ~/.nvm/nvm.sh && npm install -g openclaw@latest && systemctl --user restart openclaw-gateway` |
+| Update OpenClaw (safe path) | `source ~/.nvm/nvm.sh && npm install -g openclaw@latest && systemctl --user restart openclaw-gateway` |
+| Recover gateway after dashboard-Update hang | `bash ~/oraclaw/scripts/recover-gateway.sh my-oraclaw` (from client) or `systemctl --user restart openclaw-gateway` (on VM) |
+| Watchdog state | `journalctl --user -t openclaw-watchdog --since "1 hour ago"` |
 
 ## Client-side helpers (run on Mac / Windows 11, NOT on the VM)
 
@@ -79,5 +84,8 @@ Pair with:
 
 - `docs/FIELD-MANUAL.md` — the long walkthrough
 - `docs/CHEATSHEET.md` — daily-ops refcard
+- `docs/RECOVERY.md` — plain-English dashboard-update-broke-my-Oraclaw walkthrough + escalation path
+- `docs/MODELS.md` — primary / fallbacks / heartbeat roles + `openrouter/` prefix rationale + swap guide
 - `docs/WHEN-THINGS-GO-WRONG.md` — copy-paste-ready failure prompts
 - `scripts/install-oraclaw.sh` — authoritative VM installer; read it first to see what's actually on the box
+- `scripts/recover-gateway.sh` — one-shot "bring my dashboard back" lifeline

@@ -1,11 +1,11 @@
 <#
   approve-pairing.ps1
 
-  Approve a browser device-pairing request on your oraclaw VM.
+  Approve a browser device-pairing request on your Oraclaw VM.
 
   When to run this: when the dashboard shows "Device pairing required" after
   you paste your login token for the first time.  **This is expected, not
-  an error** - oraclaw requires every new browser to be explicitly approved
+  an error** - Oraclaw requires every new browser to be explicitly approved
   on the server side so a stolen token alone cannot let someone in.
 
   This script makes the approval a single command from your PC, so you

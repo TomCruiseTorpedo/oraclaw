@@ -1,4 +1,4 @@
-# oraclaw Field Manual
+# Oraclaw Field Manual
 
 **Your always-on agentic harness, running 24/7 on a free Oracle Cloud server, reachable only from your own devices.**
 
@@ -14,7 +14,7 @@ Version: 1.0 · For Ubuntu 24.04 (aarch64 / Ampere A1)
 3. [Create the Free VM](#3-create-the-free-vm)
 4. [Set Up Your Client Machine (One Command)](#4-set-up-your-client-machine-one-command)
 5. [Connect Your Client to the VM](#5-connect-your-client-to-the-vm)
-6. [Install oraclaw on the VM (One Command)](#6-install-oraclaw-on-the-vm-one-command)
+6. [Install Oraclaw on the VM (One Command)](#6-install-oraclaw-on-the-vm-one-command)
 7. [Open the Dashboard](#7-open-the-dashboard)
 8. [Daily Operations](#8-daily-operations)
 9. [Troubleshooting (Symptom → Fix)](#9-troubleshooting-symptom--fix)
@@ -143,7 +143,7 @@ A compartment is an OCI folder that isolates your resources.
 
 1. In the OCI console, click the **hamburger menu** (☰, top-left) → **Identity & Security** → **Compartments**.
 2. Click **Create Compartment**.
-3. Name: `oraclaw` · Description: `oraclaw environment` · Parent: `(root)`.
+3. Name: `oraclaw` · Description: `Oraclaw environment` · Parent: `(root)`.
 4. Click **Create**.
 
 ### 3.2 Create the network (VCN) — BEFORE the instance
@@ -173,10 +173,10 @@ Verify: the VCN is listed with status **Available** and shows **2 subnets** (one
    - Why these? Ubuntu: best community docs for Node.js. 24.04: LTS through April 2029. Minimal: smaller attack surface, faster boot, no desktop junk. aarch64: required for Always Free Ampere A1.
 6. **Shape:** click **Edit** next to Shape → **Change shape** → select **Ampere** → pick `VM.Standard.A1.Flex` (look for the **"Always Free-eligible"** badge).
    - **⚠️ Expand the ▶ triangle** next to `VM.Standard.A1.Flex`. The OCPU and RAM sliders are hidden until you click that triangle — the single easiest thing to miss on this page.
-   - **Recommended default:** **2 OCPUs / 12 GB RAM**. This gives you one responsive oraclaw now and leaves ~50% of the Always Free tier unused as headroom — so if you want to spin up a second oraclaw later, or redeploy, you can do it without deleting anything.
+   - **Recommended default:** **2 OCPUs / 12 GB RAM**. This gives you one responsive Oraclaw now and leaves ~50% of the Always Free tier unused as headroom — so if you want to spin up a second Oraclaw later, or redeploy, you can do it without deleting anything.
    - Full sizing options (Always Free tier gives you **4 OCPUs / 24 GB RAM / 200 GB block storage** total across all your Ampere A1 VMs — split however you like):
 
-   | How many oraclaws total? | OCPUs each | RAM each | Boot volume each |
+   | How many Oraclaws total? | OCPUs each | RAM each | Boot volume each |
    |---|:-:|:-:|:-:|
    | 1 (recommended default)    | 2 | 12 GB | 100 GB |
    | 1 (maximum power)          | 4 | 24 GB | 200 GB |
@@ -317,7 +317,7 @@ ssh my-oraclaw
 
 ---
 
-## 6. Install oraclaw on the VM (One Command)
+## 6. Install Oraclaw on the VM (One Command)
 
 SSH into the VM:
 
@@ -377,7 +377,7 @@ bash ~/oraclaw/scripts/open-dashboard.sh                 # Mac
 & $env:USERPROFILE\oraclaw\scripts\open-dashboard.ps1    # Windows
 ```
 
-**Bookmark the URL now** (it's in your browser's address bar) — this is the URL you'll open every time you want to chat with your oraclaw.
+**Bookmark the URL now** (it's in your browser's address bar) — this is the URL you'll open every time you want to chat with your Oraclaw.
 
 - *On iPhone/iPad:* open the URL in Safari → **Share** → **Add to Home Screen** for a one-tap launcher.
 - *On Android:* open the URL in Chrome → **⋮** menu → **Add to Home screen**.
@@ -390,7 +390,7 @@ In the dashboard, click the **⚙ Settings gear** (top-right) → paste with **�
 
 After you save the token, the dashboard will say **"Device pairing required"**.
 
-**This is not an error — it's part of how oraclaw stays secure.** Even with a valid token, every new browser has to be explicitly approved on the server side.  A stolen token alone cannot get into your oraclaw.
+**This is not an error — it's part of how Oraclaw stays secure.** Even with a valid token, every new browser has to be explicitly approved on the server side.  A stolen token alone cannot get into your Oraclaw.
 
 Approve this browser with one command from your client:
 
@@ -422,7 +422,7 @@ You should get a reply in a few seconds.  **If the first reply takes 20–30 sec
 
 ### A heads-up about heartbeats
 
-Every six hours, your oraclaw "wakes itself up" with a short system message — that's the heartbeat cron job running.  You'll see `Heartbeat: quick check-in.` entries in your chat history.  **This is working as intended** — it keeps the agent aware of time passing, and is the hook for future scheduled reminders or status updates.  If you don't want them, edit `~/.openclaw/cron/jobs.json` on the VM and set `"enabled": false` on the heartbeat entry, then restart the gateway.
+Every six hours, your Oraclaw "wakes itself up" with a short system message — that's the heartbeat cron job running.  You'll see `Heartbeat: quick check-in.` entries in your chat history.  **This is working as intended** — it keeps the agent aware of time passing, and is the hook for future scheduled reminders or status updates.  If you don't want them, edit `~/.openclaw/cron/jobs.json` on the VM and set `"enabled": false` on the heartbeat entry, then restart the gateway.
 
 ---
 
@@ -454,7 +454,9 @@ ssh my-oraclaw 'journalctl --user -u openclaw-gateway -f'
 # (press Ctrl-C to stop streaming)
 ```
 
-### Update OpenClaw
+### Update OpenClaw (the safe way)
+
+**Prefer this command-line path over the `Update` button in the dashboard.** The dashboard button uses an in-process restart that occasionally leaves the gateway stuck. Your Oraclaw has an auto-recovery safety net that catches this within a minute or two, but the command-line path avoids it entirely. Keep a terminal open either way — it's your escape hatch if anything goes sideways.
 
 ```bash
 ssh my-oraclaw
@@ -464,7 +466,38 @@ systemctl --user restart openclaw-gateway
 exit
 ```
 
-### Back up your oraclaw data
+### If you did click the dashboard Update button and it broke
+
+In most cases your Oraclaw heals itself within 30–90 seconds — wait a beat before reaching for a terminal. If it's been longer than two minutes and the dashboard is still showing `502`:
+
+```bash
+bash ~/oraclaw/scripts/recover-gateway.sh my-oraclaw    # from your client
+# or, on the VM:
+ssh my-oraclaw 'systemctl --user restart openclaw-gateway'
+```
+
+Full recovery walkthrough with escalation steps: **[docs/RECOVERY.md](RECOVERY.md)**.
+
+### What the auto-recovery safety net does
+
+Installed by default when you ran `install-oraclaw.sh`; you mostly never think about it:
+
+- If the gateway ever exits for any reason, `systemd` relaunches it after 10 seconds.
+- A background probe checks the gateway's `/health` every 60 seconds. After two consecutive misses, it restarts the gateway automatically — even if the usual restart-on-exit rule somehow didn't fire.
+
+You don't need to do anything to enable this. The installer sets it up. If you ever want to verify it's still healthy:
+
+```bash
+ssh my-oraclaw 'systemctl --user show openclaw-gateway -p Restart'
+# Should print:  Restart=always
+
+ssh my-oraclaw 'systemctl --user list-timers openclaw-gateway-watchdog.timer'
+# Should show a row with a next-fire time within the next minute
+```
+
+If either check shows something unexpected, re-running `install-oraclaw.sh` on the VM fixes it (the script is idempotent — it won't touch your data).
+
+### Back up your Oraclaw data
 
 Everything important lives in `~/.openclaw/` on the VM. To back it up to your client:
 
@@ -556,9 +589,23 @@ ssh my-oraclaw 'jq -r .gateway.auth.token ~/.openclaw/openclaw.json'
 ssh my-oraclaw 'bash ~/oraclaw/scripts/rotate-gateway-token.sh'
 ```
 
-### "OpenRouter says 'model not found'"
+### "OpenRouter says 'model not found'" or "Unknown model"
 
-The fallback chain automatically tries the next model. If a specific model you want is missing from the chain, edit `~/.openclaw/openclaw.json` under `agents.defaults.model` and restart the service.
+Nine times out of ten this means the slug is missing its `openrouter/` prefix. `openrouter/google/gemma-4-31b-it:free` routes through your one OpenRouter API key — which is all you have. `google/gemma-4-31b-it:free` tries to route to a different provider plugin that expects its own Google API key (which you don't have). Add the prefix, save, restart the service.
+
+The fallback chain automatically tries the next model when one fails. Full guide to how the chain works + how to swap any slot: **[docs/MODELS.md](MODELS.md)**.
+
+### "Dashboard shows 502 after clicking Update"
+
+Wait a beat — auto-recovery usually kicks in within 60–90 seconds. If it doesn't:
+
+```bash
+bash ~/oraclaw/scripts/recover-gateway.sh my-oraclaw    # from your client
+# or, on the VM:
+ssh my-oraclaw 'systemctl --user restart openclaw-gateway'
+```
+
+Full walkthrough: **[docs/RECOVERY.md](RECOVERY.md)**.
 
 ---
 

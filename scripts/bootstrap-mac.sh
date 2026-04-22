@@ -3,7 +3,7 @@
 #  bootstrap-mac.sh
 #
 #  Prepares a fresh Mac (Apple Silicon, macOS 13+) to connect to and manage an
-#  oraclaw OpenClaw instance on Oracle Cloud.  Assumes NOTHING is installed —
+#  Oraclaw OpenClaw instance on Oracle Cloud.  Assumes NOTHING is installed —
 #  not even Homebrew.
 #
 #  Usage:
@@ -42,7 +42,7 @@ fi
 cat <<'BANNER'
 ╔════════════════════════════════════════════════════════════════════╗
 ║                                                                    ║
-║   oraclaw Mac bootstrap — preparing this Mac to manage your        ║
+║   Oraclaw Mac bootstrap — preparing this Mac to manage your        ║
 ║   OpenClaw VM on Oracle Cloud.                                     ║
 ║                                                                    ║
 ║   What this does:                                                  ║
@@ -112,15 +112,15 @@ else
   info "Tailscale.app already installed"
 fi
 
-# Ensure the oraclaw repo is cloned locally (covers the curl | bash install
+# Ensure the Oraclaw repo is cloned locally (covers the curl | bash install
 # flow where the user hasn't run `git clone` yet).
 REPO_DIR="$HOME/oraclaw"
 if [[ ! -d "$REPO_DIR" ]]; then
-  say "Cloning the oraclaw repo into $REPO_DIR…"
+  say "Cloning the Oraclaw repo into $REPO_DIR…"
   git clone https://github.com/TomCruiseTorpedo/oraclaw.git "$REPO_DIR"
   info "repo cloned"
 else
-  info "oraclaw repo already at $REPO_DIR"
+  info "Oraclaw repo already at $REPO_DIR"
 fi
 
 # ── 4. SSH key ───────────────────────────────────────────────────────────────
@@ -256,7 +256,7 @@ cat <<BANNER
 ║                                                                    ║
 ║       ssh ${TS_HOST}
 ║                                                                    ║
-║   Next: copy and run the oraclaw installer on the VM:              ║
+║   Next: copy and run the Oraclaw installer on the VM:              ║
 ║                                                                    ║
 ║       scp ~/oraclaw/scripts/install-oraclaw.sh \
 ║           ${TS_HOST}:/tmp/

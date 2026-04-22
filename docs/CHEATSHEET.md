@@ -1,6 +1,20 @@
-# oraclaw Cheatsheet
+# Oraclaw Cheatsheet
 
 *One-page reference.  Print it, pin it, or paste a section at your AI assistant.*
+
+---
+
+## ⚠ If the dashboard breaks after clicking "Update"
+
+Most of the time it fixes itself in 60–90 seconds (the auto-recovery safety net does its thing).  If not, one command brings it back:
+
+```bash
+bash ~/oraclaw/scripts/recover-gateway.sh my-oraclaw
+# or, manually:
+ssh my-oraclaw 'systemctl --user restart openclaw-gateway'
+```
+
+Full walkthrough: **[docs/RECOVERY.md](RECOVERY.md)**.
 
 ---
 
@@ -36,11 +50,15 @@ journalctl  --user -u openclaw-gateway -n 50  # last 50 lines
 
 ## Update OpenClaw
 
+Prefer this command-line path over the `Update` button inside the dashboard.  The dashboard button occasionally leaves the service stuck (the auto-recovery safety net catches it within a minute or two, but this path avoids the round-trip).
+
 ```bash
 source ~/.nvm/nvm.sh
 npm install -g openclaw@latest
 systemctl --user restart openclaw-gateway
 ```
+
+If you pressed the dashboard button and it didn't come back, see the banner at the top of this sheet.
 
 ## Device Pairing
 
@@ -85,6 +103,36 @@ sudo sshd -T | grep -iE 'permitroot|allow'    # sshd effective config
 sudo cat /etc/apt/apt.conf.d/20auto-upgrades  # auto-upgrades
 ```
 
+## Auto-Recovery Safety Net (installed by default)
+
+```bash
+# Is Restart=always active? (should show Restart=always, RestartUSec=10s)
+systemctl --user show openclaw-gateway -p Restart -p RestartUSec
+
+# Is the watchdog timer scheduled? (fires every 60 s)
+systemctl --user list-timers openclaw-gateway-watchdog.timer
+
+# Watchdog activity (only logs on failures — silent is good)
+journalctl --user -t openclaw-watchdog --since "1 hour ago"
+```
+
+If either check above shows something unexpected, re-run `install-oraclaw.sh` on the VM — it's idempotent and will repair the safety net without touching your data.
+
+## Model Chain
+
+```bash
+# Which model is primary?
+jq -r '.agents.defaults.model.primary' ~/.openclaw/openclaw.json
+
+# Full chain (primary + fallbacks in order)
+jq '.agents.defaults.model' ~/.openclaw/openclaw.json
+
+# Heartbeat model (what the background check-ins use)
+jq '.agents.defaults.heartbeat' ~/.openclaw/openclaw.json
+```
+
+Full guide — what each slot is for, why every slug starts with `openrouter/`, and how to swap one safely: **[docs/MODELS.md](MODELS.md)**.
+
 ## Rotate Gateway Token
 
 ```bash
@@ -112,9 +160,12 @@ systemctl --user restart openclaw-gateway
 
 | Symptom | Command |
 |---------|---------|
+| Dashboard shows 502 after clicking Update | `bash ~/oraclaw/scripts/recover-gateway.sh my-oraclaw` |
 | Dashboard shows "unauthorized" | `jq -r .gateway.auth.token ~/.openclaw/openclaw.json` |
 | Dashboard won't load | `systemctl --user status openclaw-gateway` |
 | Reply never comes | `journalctl --user -u openclaw-gateway -n 30` |
+| "Unknown model" / model not found | See [docs/MODELS.md](MODELS.md) — usually a missing `openrouter/` prefix |
+| All heartbeats failing 404 | Heartbeat model likely retired upstream; swap per [docs/MODELS.md](MODELS.md) |
 | VM unreachable | OCI console → Instance status |
 | "Connection refused" | `curl -I http://127.0.0.1:18789/` on the VM |
 | Disk full | `df -h; du -sh ~/.openclaw/*` |

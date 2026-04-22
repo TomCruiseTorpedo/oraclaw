@@ -1,7 +1,7 @@
 <#
   open-dashboard.ps1
 
-  Opens the oraclaw Control UI dashboard in your default browser AND copies
+  Opens the Oraclaw Control UI dashboard in your default browser AND copies
   the login token to your clipboard at the same time, so you can paste it
   straight into the Settings panel.
 

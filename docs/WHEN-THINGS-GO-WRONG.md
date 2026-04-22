@@ -1,6 +1,6 @@
 # When Things Go Wrong — Copy-Paste Help Prompts
 
-When oraclaw misbehaves, your AI coding assistant (Copilot, Cursor, Antigravity, Claude Code, etc.) can help you diagnose it — but only if you give it enough context.  Weaker free-tier models (Haiku 4.5, GPT-5-mini, etc.) especially benefit from a pre-formed prompt instead of a vague "it's broken".
+When Oraclaw misbehaves, your AI coding assistant (Copilot, Cursor, Antigravity, Claude Code, etc.) can help you diagnose it — but only if you give it enough context.  Weaker free-tier models (Haiku 4.5, GPT-5-mini, etc.) especially benefit from a pre-formed prompt instead of a vague "it's broken".
 
 This file is a collection of such prompts.  Find the section that matches your symptom, copy the whole block into your AI's chat, add any details the block asks for, and send.
 
@@ -11,9 +11,9 @@ Most harnesses (Cursor, Antigravity, Claude Code) will also auto-load `AGENTS.md
 ## 1. I can't reach the dashboard URL in my browser
 
 ```
-I'm running oraclaw — an OpenClaw agentic harness deployed to an Oracle
+I'm running Oraclaw — an OpenClaw agentic harness deployed to an Oracle
 Cloud Always-Free Ubuntu 24.04 aarch64 VM, reachable only via Tailscale.
-The setup follows the oraclaw Field Manual (see AGENTS.md for the stack).
+The setup follows the Oraclaw Field Manual (see AGENTS.md for the stack).
 
 Symptom: when I open the dashboard URL in my browser, the page won't
 load.  The URL is:
@@ -33,7 +33,7 @@ rather understand the problem before fixing it.
 ## 2. The dashboard loads but shows "Unauthorized"
 
 ```
-I'm running oraclaw (see AGENTS.md).  The dashboard loads at my tailnet
+I'm running Oraclaw (see AGENTS.md).  The dashboard loads at my tailnet
 URL, but instead of the chat interface I see "Unauthorized".
 
 I think my login token may be wrong or stale.  Can you give me the exact
@@ -56,7 +56,7 @@ bash ~/oraclaw/scripts/approve-pairing.sh                # Mac
 If that doesn't work (helper can't reach the VM, unusual output, etc.), paste this prompt into your AI:
 
 ```
-I'm running oraclaw (see AGENTS.md).  The dashboard says "Device pairing
+I'm running Oraclaw (see AGENTS.md).  The dashboard says "Device pairing
 required" when I load it in my browser.  The approve-pairing helper
 didn't complete successfully — here's its output:
 
@@ -72,7 +72,7 @@ CLI.
 ## 4. I send a message in the dashboard but nothing happens
 
 ```
-I'm running oraclaw (see AGENTS.md).  I type a message in the dashboard
+I'm running Oraclaw (see AGENTS.md).  I type a message in the dashboard
 chat, hit Send, and either nothing happens or the "thinking" indicator
 never resolves.
 
@@ -92,7 +92,7 @@ assume — look at the logs first.
 ## 5. SSH to the VM fails with "Connection refused" or "Permission denied"
 
 ```
-I'm running oraclaw (see AGENTS.md).  I can't SSH into my VM.  The
+I'm running Oraclaw (see AGENTS.md).  I can't SSH into my VM.  The
 exact error I'm seeing is:
 
 <paste the full error message from your terminal / PowerShell>
@@ -110,10 +110,10 @@ not rebuild.
 
 ---
 
-## 6. The oraclaw installer (install-oraclaw.sh) failed partway through
+## 6. The Oraclaw installer (install-oraclaw.sh) failed partway through
 
 ```
-I'm running the oraclaw installer (`install-oraclaw.sh`) on a fresh
+I'm running the Oraclaw installer (`install-oraclaw.sh`) on a fresh
 Oracle Cloud Ampere A1 Ubuntu 24.04 Minimal VM.  The script failed at
 step <paste the step number from its output, e.g. "[6/13]">.
 
@@ -131,7 +131,7 @@ whether I should fix anything manually first?
 ## 7. The VM is full (out of disk space)
 
 ```
-I'm running oraclaw (see AGENTS.md).  My VM appears to be out of disk
+I'm running Oraclaw (see AGENTS.md).  My VM appears to be out of disk
 space.  The symptom is:
 
 <describe: dashboard won't respond / SSH is very slow / got an
@@ -154,7 +154,7 @@ history or config accidentally.
 ## 8. I forgot my dashboard login token
 
 ```
-I'm running oraclaw (see AGENTS.md).  I forgot my dashboard login
+I'm running Oraclaw (see AGENTS.md).  I forgot my dashboard login
 token.  I'm SSHed into the VM as user `ubuntu`.
 
 Give me the exact one-line command to re-read the token from the
@@ -167,7 +167,7 @@ OpenClaw config file, and remind me where to paste it in the dashboard.
 
 ```
 I'm trying to create an Ampere A1 Always-Free VM in Oracle Cloud for
-the oraclaw setup, and every time I click Create I get "Out of host
+the Oraclaw setup, and every time I click Create I get "Out of host
 capacity".
 
 Status of my account: <Pay As You Go (PAYG, approved) | Free Trial |
@@ -186,7 +186,7 @@ anything else to check before I just keep retrying.
 ## 10. I got locked out by fail2ban (too many failed SSH attempts)
 
 ```
-I'm running oraclaw (see AGENTS.md).  I think I got banned by fail2ban
+I'm running Oraclaw (see AGENTS.md).  I think I got banned by fail2ban
 on my own VM — SSH hangs or refuses from my current IP, but I know
 nothing on the VM is actually broken.
 
@@ -201,7 +201,7 @@ myself so I can SSH again.
 ## 11. My OpenRouter account says I've hit a rate limit
 
 ```
-I'm running oraclaw (see AGENTS.md).  OpenRouter is returning rate-limit
+I'm running Oraclaw (see AGENTS.md).  OpenRouter is returning rate-limit
 errors (HTTP 429) and my dashboard responses are failing or very slow.
 
 I'm on <the free tier with no credits | the $10 top-up plan>.
@@ -215,7 +215,7 @@ per call — I want to stay on free models if possible.
 ## 12. I want to start over / nuke and redeploy
 
 ```
-I'm running oraclaw (see AGENTS.md).  I want to wipe this VM and start
+I'm running Oraclaw (see AGENTS.md).  I want to wipe this VM and start
 over from scratch — either because I messed up the config badly, or
 because I want to deploy a fresh one.
 

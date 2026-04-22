@@ -1,7 +1,7 @@
 <#
   bootstrap-windows.ps1
 
-  Prepares a fresh Windows 11 PC to connect to and manage an oraclaw
+  Prepares a fresh Windows 11 PC to connect to and manage an Oraclaw
   OpenClaw instance on Oracle Cloud.  Assumes only Windows 11 + winget
   (built-in).  The OpenSSH client that ships with Windows 11 handles ssh,
   scp, and ssh-keygen — no WSL, Cygwin, or MSYS needed.
@@ -54,7 +54,7 @@ if (-not (Get-Command ssh -ErrorAction SilentlyContinue)) {
 Write-Host @'
 +====================================================================+
 |                                                                    |
-|   oraclaw Windows 11 bootstrap                                     |
+|   Oraclaw Windows 11 bootstrap                                     |
 |                                                                    |
 |   What this does:                                                  |
 |     1. Installs git, Tailscale, jq via winget                      |
@@ -93,15 +93,15 @@ Install-IfMissing -Id 'jqlang.jq'           -Friendly 'jq'
 $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
             [Environment]::GetEnvironmentVariable('Path', 'User')
 
-# Ensure the oraclaw repo is cloned locally (covers the irm | iex install flow
+# Ensure the Oraclaw repo is cloned locally (covers the irm | iex install flow
 # where the user hasn't run `git clone` yet).
 $repoDir = Join-Path $env:USERPROFILE 'oraclaw'
 if (-not (Test-Path $repoDir)) {
-    Say "Cloning the oraclaw repo into $repoDir..."
+    Say "Cloning the Oraclaw repo into $repoDir..."
     git clone 'https://github.com/TomCruiseTorpedo/oraclaw.git' $repoDir | Out-Host
     Info 'repo cloned'
 } else {
-    Info "oraclaw repo already at $repoDir"
+    Info "Oraclaw repo already at $repoDir"
 }
 
 # -- 2. SSH key -----------------------------------------------------------------
@@ -258,7 +258,7 @@ Write-Host @"
 |                                                                    |
 |       ssh $tsHost
 |                                                                    |
-|   Next: copy and run the oraclaw installer on the VM:              |
+|   Next: copy and run the Oraclaw installer on the VM:              |
 |                                                                    |
 |       scp `$env:USERPROFILE\oraclaw\scripts\install-oraclaw.sh ``
 |           ${tsHost}:/tmp/

@@ -10,8 +10,9 @@
 #    - nvm + Node.js 24.15.0
 #    - Tailscale + tailscale serve (HTTPS dashboard, tailnet-only)
 #    - OpenClaw via npm, running as user `ubuntu`
-#    - systemd user service with a safe hardening drop-in
+#    - systemd user service with hardening drop-in + Restart=always
 #    - one heartbeat cron job every 6 hours (isolated session)
+#    - update-safety watchdog: 60s /health probe, auto-restart on 2 fails
 #    - SSH hardening, fail2ban, UFW default-deny, unattended-upgrades
 #
 #  Run AS THE ubuntu USER on a fresh OCI VM.
@@ -43,17 +44,25 @@ TIMEZONE="${TIMEZONE:-}"
 # 6 GB RAM → 4 GB swap; 12 GB → 8 GB; 24 GB → 16 GB.  Override with SWAP_GB=<N>.
 SWAP_GB="${SWAP_GB:-}"
 
-# Model allowlist — primary OpenRouter model + 6 free fallbacks.
+# Model allowlist — primary + 5 free fallbacks.  Every slug is prefixed
+# with "openrouter/" so it routes through the OpenRouter plugin (one API
+# key) rather than per-provider plugins (which would each need their own
+# key).  If you see "Unknown model: X" in the logs, a missing prefix is
+# almost always the cause.
 MODELS=(
-  "openrouter/elephant-alpha"
-  "minimax/minimax-m2.5:free"
-  "nvidia/nemotron-3-super-120b-a12b:free"
-  "google/gemma-4-31b-it:free"
-  "z-ai/glm-4.5-air:free"
-  "qwen/qwen3-coder:free"
-  "openrouter/free"
+  "openrouter/inclusionai/ling-2.6-flash:free"
+  "openrouter/google/gemma-4-31b-it:free"
+  "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
+  "openrouter/minimax/minimax-m2.5:free"
+  "openrouter/z-ai/glm-4.5-air:free"
+  "openrouter/qwen/qwen3-coder:free"
 )
-PRIMARY_MODEL="openrouter/elephant-alpha"
+PRIMARY_MODEL="openrouter/inclusionai/ling-2.6-flash:free"
+
+# Heartbeat uses a smaller, faster model than the main chain.  Heartbeats
+# fire far more often than user-initiated work; a 3B free model here vs.
+# the 120B main-chain fallback is a ~100× cost difference.
+HEARTBEAT_MODEL="openrouter/meta-llama/llama-3.2-3b-instruct:free"
 
 # ── Pretty output ─────────────────────────────────────────────────────────────
 BOLD='\033[1m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; RED='\033[0;31m'; NC='\033[0m'
@@ -80,7 +89,7 @@ uuid_v4() {
 [[ -f /etc/os-release ]] && source /etc/os-release || die "/etc/os-release missing."
 [[ "${ID:-}" == "ubuntu" ]] || warn "Not Ubuntu (got $ID) — continuing anyway."
 
-say "oraclaw installer — $(date -Iseconds)"
+say "Oraclaw installer — $(date -Iseconds)"
 say "Host:   $(hostname)"
 say "Arch:   $(uname -m)"
 say "Ubuntu: ${VERSION_ID:-?}"
@@ -187,8 +196,11 @@ chmod 700 "$HOME/.openclaw"
 # Secure token generation
 GATEWAY_TOKEN="$(openssl rand -hex 24)"
 
-# Build models JSON blocks via jq to avoid quoting hell
-MODELS_JSON=$(printf '%s\n' "${MODELS[@]}" | jq -R . | jq -s 'map({(.): {}}) | add')
+# Build models JSON blocks via jq to avoid quoting hell.  The heartbeat
+# model must appear in the registry (as a key) but NOT in the fallbacks
+# chain — it's the primary for the heartbeat role, not a fallback.
+ALL_MODELS=("${MODELS[@]}" "$HEARTBEAT_MODEL")
+MODELS_JSON=$(printf '%s\n' "${ALL_MODELS[@]}" | jq -R . | jq -s 'map({(.): {}}) | add')
 FALLBACKS_JSON=$(printf '%s\n' "${MODELS[@]}" | jq -R . | jq -s '.[1:]')
 
 if [[ -f "$HOME/.openclaw/openclaw.json" ]]; then
@@ -205,7 +217,11 @@ cat > "$HOME/.openclaw/openclaw.json" <<JSON
         "primary": "$PRIMARY_MODEL",
         "fallbacks": $FALLBACKS_JSON
       },
-      "heartbeat": { "isolatedSession": true }
+      "heartbeat": {
+        "isolatedSession": true,
+        "lightContext": true,
+        "model": "$HEARTBEAT_MODEL"
+      }
     }
   },
   "gateway": {
@@ -236,18 +252,6 @@ chmod 600 "$HOME/.openclaw/openclaw.json"
 echo "OPENROUTER_API_KEY=$OPENROUTER_API_KEY" > "$HOME/.openclaw/.env"
 chmod 600 "$HOME/.openclaw/.env"
 
-# elephant-alpha custom model entry (not in stock catalogue)
-MODELS_FILE="$HOME/.openclaw/agents/main/agent/models.json"
-if [[ ! -f "$MODELS_FILE" ]] || ! jq -e '.providers.openrouter.models[] | select(.id=="openrouter/elephant-alpha")' "$MODELS_FILE" >/dev/null 2>&1; then
-  mkdir -p "$(dirname "$MODELS_FILE")"
-  [[ -f "$MODELS_FILE" ]] || echo '{"providers":{"openrouter":{"baseUrl":"https://openrouter.ai/api/v1","api":"openai-completions","models":[]}}}' > "$MODELS_FILE"
-  jq '.providers.openrouter.models += [{
-        "id":"openrouter/elephant-alpha","name":"Elephant Alpha",
-        "reasoning":false,"input":["text"],
-        "cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0},
-        "contextWindow":262144,"maxTokens":32768
-      }]' "$MODELS_FILE" > "$MODELS_FILE.tmp" && mv "$MODELS_FILE.tmp" "$MODELS_FILE"
-fi
 
 # ── 7. Heartbeat cron (one job, every 6 hours) ────────────────────────────────
 say "[7/13] Configuring heartbeat cron (1 job, every 6 hours, tz $TIMEZONE)…"
@@ -297,8 +301,12 @@ After=network-online.target tailscaled.service
 Type=simple
 EnvironmentFile=%h/.openclaw/.env
 ExecStart=%h/.nvm/versions/node/v${NODE_VERSION}/bin/node %h/.nvm/versions/node/v${NODE_VERSION}/lib/node_modules/openclaw/dist/entry.js gateway --port 18789
-Restart=on-failure
-RestartSec=5
+
+# Restart=always (not on-failure) so the in-process SIGUSR1 supervisor
+# restart — triggered by the Control UI "Update" button — is caught by
+# systemd even when the process exits code=0.  See docs/RECOVERY.md.
+Restart=always
+RestartSec=10s
 
 # Hardening — safe subset for systemd USER services.  Do NOT add
 # CapabilityBoundingSet / AmbientCapabilities (218/CAPABILITIES on start) or
@@ -315,9 +323,68 @@ RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
 
 [Install]
 WantedBy=default.target
+
+[Unit]
+# Absorb pathological update loops; the watchdog (installed next) catches
+# the rare case where systemd still bails after burst exhaustion.
+StartLimitIntervalSec=300
+StartLimitBurst=20
 SVC
+
+# ── 8b. Update-safety watchdog (belt-and-suspenders to Restart=always) ──────
+# If the gateway exits cleanly (exit code 0) and systemd then hits the
+# StartLimitBurst ceiling, Restart=always alone isn't enough — we need a
+# separate timer to probe /health and kick the service back up.  This is
+# the defense-in-depth that makes the Control UI "Update" button safe.
+say "   installing update-safety watchdog (60s /health probe)…"
+mkdir -p "$HOME/.local/bin"
+cat > "$HOME/.local/bin/openclaw-gateway-watchdog.sh" <<'WATCHDOG'
+#!/usr/bin/env bash
+# Probe openclaw-gateway /health.  On 2 consecutive failures, clear any
+# StartLimit block and restart the service.
+set -euo pipefail
+HEALTH_URL="http://127.0.0.1:18789/health"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/openclaw-watchdog"
+mkdir -p "$STATE_DIR"
+COUNT_FILE="$STATE_DIR/fail-count"
+code=$(curl -sS -m 4 -o /dev/null -w '%{http_code}' "$HEALTH_URL" 2>/dev/null || echo 000)
+if [ "$code" = "200" ]; then rm -f "$COUNT_FILE"; exit 0; fi
+n=$(cat "$COUNT_FILE" 2>/dev/null || echo 0); n=$((n + 1)); echo "$n" > "$COUNT_FILE"
+if [ "$n" -lt 2 ]; then
+  logger -t openclaw-watchdog "gateway probe failed (http=$code) ${n}/2; will retry"
+  exit 0
+fi
+logger -t openclaw-watchdog "gateway down ${n}x (http=$code); clearing start-limit and restarting"
+export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+systemctl --user reset-failed openclaw-gateway || true
+systemctl --user restart openclaw-gateway
+rm -f "$COUNT_FILE"
+WATCHDOG
+chmod 0755 "$HOME/.local/bin/openclaw-gateway-watchdog.sh"
+
+cat > "$HOME/.config/systemd/user/openclaw-gateway-watchdog.service" <<'SVC'
+[Unit]
+Description=OpenClaw gateway health watchdog (one-shot probe)
+After=network.target
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/openclaw-gateway-watchdog.sh
+SVC
+cat > "$HOME/.config/systemd/user/openclaw-gateway-watchdog.timer" <<'TIMER'
+[Unit]
+Description=Probe openclaw-gateway /health every 60s
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=60s
+AccuracySec=10s
+[Install]
+WantedBy=timers.target
+TIMER
+
 systemctl --user daemon-reload
 systemctl --user enable openclaw-gateway.service
+systemctl --user enable --now openclaw-gateway-watchdog.timer
 sudo loginctl enable-linger "$USER" >/dev/null || warn "loginctl enable-linger failed — service won't start without login"
 systemctl --user restart openclaw-gateway.service
 
@@ -398,7 +465,7 @@ chmod 600 "$HOME/.openclaw/dashboard-url"
 # ── Done ─────────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}${GREEN}═══════════════════════════════════════════════════════════════════${NC}"
-echo -e "${BOLD}${GREEN}  oraclaw installed and hardened.${NC}"
+echo -e "${BOLD}${GREEN}  Oraclaw installed and hardened.${NC}"
 echo -e "${BOLD}${GREEN}═══════════════════════════════════════════════════════════════════${NC}"
 echo ""
 echo -e "${BOLD}Dashboard URL:${NC}  https://${TAILNET_FQDN}"
