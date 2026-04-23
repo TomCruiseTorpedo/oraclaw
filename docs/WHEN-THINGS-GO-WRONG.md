@@ -204,7 +204,7 @@ myself so I can SSH again.
 I'm running Oraclaw (see AGENTS.md).  OpenRouter is returning rate-limit
 errors (HTTP 429) and my dashboard responses are failing or very slow.
 
-I'm on <the free tier with no credits | the $10 top-up plan>.
+I'm on <the free tier with no credits | the $10 USD top-up plan>.
 
 What are my options in order of best-to-worst?  I don't want to pay
 per call — I want to stay on free models if possible.

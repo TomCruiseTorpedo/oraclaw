@@ -74,7 +74,7 @@ Pair with:
 3. Always name the **exact file path** and the **exact `systemctl --user` restart command** in any change you propose.
 4. The service is a **USER** systemd unit. `sudo systemctl status openclaw-gateway` will NOT find it.
 5. The dashboard is reachable only over the user's tailnet. Do NOT propose nginx, public DNS, Certbot, Let's Encrypt, or buying a domain — that is a different architecture.
-6. OpenRouter: free-tier API is 50 calls/day; a one-time $10 top-up raises the free-model cap to 1000/day. HTTP 429 responses are normal — the fallback chain handles them.
+6. OpenRouter: free-tier API is 50 calls/day; a one-time $10 USD top-up raises the free-model cap to 1000/day. HTTP 429 responses are normal — the fallback chain handles them.
 7. If uncertain which host you're on, check `hostname` and `tailscale status` before acting.
 8. Do NOT run `apt upgrade` interactively — unattended-upgrades handles drift in the background.
 

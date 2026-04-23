@@ -11,7 +11,7 @@
 - A **real phone number** that can receive SMS (Oracle verifies it).
 - A **GitHub account** — sign up free at [github.com](https://github.com). You'll need this later for cloning the repo.
 - A **Tailscale account** — sign up free at [tailscale.com](https://tailscale.com). **While you're on the Tailscale site, also download the Tailscale app for your Mac or Windows 11 PC** — the download button is right there. Takes 30 seconds, saves time later. Do NOT try to install Tailscale on the Oracle Cloud VM yourself; the `install-oraclaw.sh` installer does that for you later. (Background reading: [OpenClaw's Tailscale docs](https://docs.openclaw.ai/gateway/tailscale) + [Tailscale's blog on the integration](https://tailscale.com/blog/openclaw-tailscale-aperture-serve). The blog also mentions Aperture — that's a separate Tailscale AI-gateway product **not** used by this kit; skip the Aperture sections.)
-- (Recommended, $10 one-time) An **OpenRouter account** with a $10 top-up — sign up at [openrouter.ai](https://openrouter.ai). The $10 raises your daily call cap from 50 to 1000 on free models. Your card doesn't get charged per call; the $10 just unlocks the higher limit.
+- (Recommended, $10 USD one-time) An **OpenRouter account** with a $10 USD top-up — sign up at [openrouter.ai](https://openrouter.ai). The $10 USD raises your daily call cap from 50 to 1000 on free models. Your card doesn't get charged per call; the $10 USD just unlocks the higher limit.
 
 Estimated time: **1 hour** from account creation to a running VM. Most of it waiting on Oracle provisioning and the PAYG upgrade.
 

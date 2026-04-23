@@ -66,7 +66,7 @@ OpenClaw is an AI "agentic harness" — think of it like Cursor or Claude Code, 
 - A **real email address** you check (for Oracle and Tailscale verification)
 - A **real phone number** that can receive SMS (for Oracle verification)
 - A **credit card** (Oracle verifies it but won't charge you as long as you stay in the Always Free tier)
-- An **OpenRouter account + API key**. Sign up at [openrouter.ai](https://openrouter.ai). The free tier via API is capped at **50 calls/day** — fine for trying it, tight for daily use. A one-time **$10 top-up** raises the free-model cap to **1000 calls/day** and is **strongly recommended on day one** — you are already adding a credit card to Oracle, and OpenRouter will not charge you per call on free models. The $10 sits on your account until you actually burn it (which could take years on free models).
+- An **OpenRouter account + API key**. Sign up at [openrouter.ai](https://openrouter.ai). The free tier via API is capped at **50 calls/day** — fine for trying it, tight for daily use. A one-time **$10 USD top-up** raises the free-model cap to **1000 calls/day** and is **strongly recommended on day one** — you are already adding a credit card to Oracle, and OpenRouter will not charge you per call on free models. The $10 USD sits on your account until you actually burn it (which could take years on free models).
 - A **Tailscale account** (free personal tier) at [tailscale.com](https://tailscale.com). **While you're there making the account, go ahead and download the Tailscale app for your client machine (Mac or Windows 11 PC).** The download link is right there on the signup / download page — takes 30 seconds. Doing it now saves time later; the bootstrap script in Section 4 handles installation fallback if you didn't. By the end of setup Tailscale lives in **two places under your single account**:
   - On your **client machine** (Mac or Windows 11 PC) — a menu-bar/tray app with a GUI. Install now (via tailscale.com while you're there) OR let the Section 4 bootstrap install it via Homebrew / winget.
   - On the **Oracle Cloud VM** — a background service (`tailscaled`). **You do NOT install this yourself.** The `install-oraclaw.sh` installer runs it on the VM in Section 6 for you.
@@ -575,7 +575,7 @@ If you don't have an OpenRouter account yet, do this now so you have the API key
 
 1. Go to [openrouter.ai](https://openrouter.ai).
 2. Sign in — Google, GitHub, Apple, or email all work.
-3. **Add $10 in credits first** — click your avatar (top-right) → **Credits** → **Add Credits** → **$10**. This is the single most useful thing you can do here: it raises your free-tier limit from **50 calls/day** to **1000 calls/day**. You will NOT be charged per call on free models (the default configuration) — the $10 just sits on your account and unlocks the higher limit. Most people never burn through it.
+3. **Add $10 USD in credits first** — click your avatar (top-right) → **Credits** → **Add Credits** → **$10 USD**. This is the single most useful thing you can do here: it raises your free-tier limit from **50 calls/day** to **1000 calls/day**. You will NOT be charged per call on free models (the default configuration) — the $10 USD just sits on your account and unlocks the higher limit. Most people never burn through it.
 4. Click **Keys** (left sidebar) → **Create Key** → name it `oraclaw` → copy the `sk-or-…` string somewhere safe (you won't see it again).
 
 If you skip the top-up, the installer still works — you'll just hit the 50-call ceiling sooner than you'd like.
@@ -778,7 +778,7 @@ Mosh survives Wi-Fi changes and lid-close. Tmux keeps your work going even if th
 - Common causes:
   - **Rate limit:** free OpenRouter models rate-limit heavily. Wait a minute. The fallback chain should kick in automatically.
   - **No API key:** `ssh my-oraclaw 'grep OPENROUTER_API_KEY ~/.openclaw/.env'` — should show your key.
-  - **OpenRouter daily cap hit:** the free-tier API is 50 calls/day; a one-time $10 top-up raises it to 1000/day on free models. Check [openrouter.ai/account](https://openrouter.ai/account).
+  - **OpenRouter daily cap hit:** the free-tier API is 50 calls/day; a one-time $10 USD top-up raises it to 1000/day on free models. Check [openrouter.ai/account](https://openrouter.ai/account).
 
 ### "SSH fails with 'Connection refused' or 'Permission denied'"
 
