@@ -1,6 +1,6 @@
 # Harness Prompts — talking to your AI assistant
 
-**This page is for people setting up Oraclaw with help from an AI coding assistant** (GitHub Copilot, Cursor, Claude Code, Antigravity, Aider, etc.).
+**This page is for people setting up Oraclaw with help from an AI coding assistant** (GitHub Copilot, Cursor, Claude Code, Antigravity, etc.).
 
 You don't need to memorize any of the setup steps. You can paste the prompts below into your AI assistant and it'll walk you through each phase one step at a time, waiting for you to say "done" or "stuck" between steps.
 

@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Context for AI coding assistants (Cursor, Copilot in VS Code, Antigravity,
-Claude Code, Aider, etc.). Auto-loaded when the user opens this repo or
+Claude Code, etc.). Auto-loaded when the user opens this repo or
 the target OpenClaw host. Keeps you grounded so weaker free-tier models
 don't hallucinate paths, ports, or commands.
 
