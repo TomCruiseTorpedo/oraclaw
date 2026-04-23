@@ -184,38 +184,103 @@ Verify on the VCN list: `claws-vcn` appears with status **Available**. Click int
 
 ---
 
-## Step 6 — Create the Compute Instance (your VM)
+## Step 6 — Create the Compute Instance (4-step wizard + Save-as-Stack)
 
 You can start this as soon as PAYG is active **and** you've done Steps 4 + 5 above.
 
-> **If the UI feels overwhelming**, the goal of this step is: click "Create Instance", fill in 5–6 fields (compartment, name, shape, OS image, VCN, SSH key), click Create. Everything else is fine at default.
+OCI's "Create compute instance" is a **4-step wizard**: Basic information → Security → Networking → Storage. We'll also save your whole configuration as a **Terraform Stack** at the end so you can retry creation later if Oracle's Ampere A1 capacity is temporarily full.
 
-1. Hamburger menu → **Compute** → **Instances**.
-2. At the top of the page content, click the **Compartment** filter and pick your `claws` compartment.
-3. Click **Create instance**.
-4. **Name:** something memorable, like `my-oraclaw` (lowercase, no spaces). This becomes your SSH alias later.
-5. **Placement:** leave the defaults (your home region, any availability domain).
-6. **Image and shape:**
-   - Click **Change image** → **Canonical Ubuntu** → **Ubuntu 24.04 Minimal** → **aarch64 (ARM)**. Click **Select image**.
-   - Click **Change shape** → **Ampere** → **VM.Standard.A1.Flex** → set **OCPUs: 2** and **Memory: 12 GB**. Click **Select shape**.
+**Start:** hamburger menu → **Compute** → **Instances**. Top-of-page **Compartment** filter → `claws`. Click **Create instance**.
 
-   This is the Always Free Ampere shape. 2 OCPUs + 12 GB RAM leaves half your free-tier quota for a second VM later.
+---
 
-7. **Networking:**
-   - **Virtual cloud network:** pick `claws-vcn` (the one from Step 5).
-   - **Subnet:** pick the **public** subnet (named `Public Subnet-claws-vcn` or similar). Public means your VM can reach the internet (Tailscale needs this to call home during install). It does NOT mean your VM is publicly reachable — inbound is still gated by the security list you didn't touch.
-   - Confirm **"Assign a public IPv4 address"** is **checked**. If it's greyed out, you skipped Step 5 — back up and create the VCN via the Wizard first.
-8. **Boot volume:** 47 GB default is fine. Bump to 100 GB if you want headroom (up to 200 GB shared across all free-tier instances).
-9. **SSH keys:**
-   - Select **Paste public keys**.
-   - Paste the line from Step 3. Confirm it starts with `ssh-ed25519 ` and ends with your user/date comment (the "three parts" rule from Step 3 — if your paste is missing the algorithm name or the comment, Oracle will silently reject it).
-   - **If you went the "let Oracle generate a key pair" route** instead: pick that option here, and make sure you click **Save private key** AND **Save public key** — you'll need both files.
+### Wizard Step 1 — Basic information
 
-10. Click **Create**.
+- **Name:** something memorable — e.g. `my-oraclaw`. Lowercase, no spaces. Becomes your SSH alias later. Replace Oracle's default `instance-<timestamp>`.
+- **Create in compartment:** your **subcompartment** (e.g. `claws`). Expand the tree; don't leave it on root.
+- **Availability domain:** AD 1 (default — only one on Always Free).
+- **Advanced options** (expand):
+  - **Capacity type: On-demand capacity** (default). Not Preemptible, not Capacity reservation, not Compute cluster.
+  - **Cluster placement group:** OFF.
+  - **Fault domain:** `FAULT-DOMAIN-1` is fine.
 
-The VM takes about 2 minutes. The **State** badge goes Provisioning → Running. You now have a Linux server running 24/7 in Oracle's data center, reachable only via Tailscale once your client connects in Step 7.
+### Wizard Step 1 continued — Image and shape
 
-**Write down** (or screenshot) the public IP that Oracle shows on the instance detail page. You won't need it often (Tailscale handles hostnames), but if Tailscale ever breaks this is the backup.
+- **Image:** **Change image** → Canonical Ubuntu → **Ubuntu 24.04 Minimal** → **aarch64**. Select.
+- **Shape:** **Change shape** → Ampere → `VM.Standard.A1.Flex` (Always Free-eligible badge). **Expand the ▶ triangle** next to the shape name — the OCPU / RAM sliders are hidden until you do. Set **2 OCPUs / 12 GB RAM**. Select.
+
+### Wizard Step 1 continued — Advanced options below Image and shape
+
+Expand the Advanced options caret, then:
+
+- **Management → Require an authorization header: ON** (default). Forces IMDSv2, a safer metadata service.
+- **Management → Initialization script:** leave default (nothing loaded).
+- **Availability configuration → Live migration: Let Oracle Cloud Infrastructure choose the best migration option** (leftmost card).
+- **Availability configuration → Restore instance lifecycle state after infrastructure maintenance: ON**. Otherwise your VM stays Stopped after maintenance.
+- **Oracle Cloud Agent:** uncheck everything except these two:
+  - **Compute Instance Monitoring** ✓
+  - **Vulnerability Scanning** ✓
+  - (all others) ✗ — Block Volume Management, OS Management Service Agent, Custom Logs Monitoring, Run Command, Bastion, etc.
+
+### Wizard Step 2 — Security
+
+Click **Next**.
+
+- **Shielded instance: OFF** (default). Adds boot-time overhead with no useful benefit here.
+- **Confidential computing: OFF** (forced — Ampere A1 doesn't support it; the warning is expected).
+
+### Wizard Step 3 — Networking
+
+Click **Next**.
+
+- **VNIC name:** leave blank.
+- **Primary network:** **Select existing virtual cloud network**.
+  - **VCN compartment:** `claws`.
+  - **VCN:** `claws-vcn` (from Step 5).
+- **Subnet:** **Select existing subnet**.
+  - **Subnet compartment:** `claws`.
+  - **Subnet:** `public subnet-claws-vcn (regional)`.
+- **Public IPv4 address:** confirm **"Automatically assign public IPv4 address"** is checked.
+- **Advanced options (networking):**
+  - **Use network security groups: OFF**.
+  - **DNS record: Assign a private DNS record** (default).
+  - **Hostname:** e.g. `my-oraclaw` (can match the instance name).
+  - **Launch options: Let Oracle Cloud Infrastructure choose the best networking type** (default).
+
+### Wizard Step 3 continued — Add SSH keys
+
+Scroll down, still on Networking:
+
+- Select **Paste public key**.
+- Paste your public key from Step 3 of this doc — all three parts, starts with `ssh-ed25519 `, ends with today's date.
+- **If you went the Oracle-generated keypair route**, pick **Generate a key pair for me** here instead, and click BOTH **Save private key** and **Save public key** — save both files where you can find them.
+
+### Wizard Step 4 — Storage
+
+Click **Next**.
+
+- **Boot volume:** turn **ON** "Specify a custom boot volume size and performance setting".
+  - **Boot volume size: 50 GB** (or higher, up to 200 GB total across free-tier instances).
+  - **Boot volume performance: 120 VPU** (max; still free). Faster disk.
+- **Use in-transit encryption: OFF**.
+- **Encrypt this volume with a key that you manage: OFF** (default).
+- **Block volumes:** leave empty.
+
+### Before Create — save as a Terraform Stack (retry-later recovery)
+
+Scroll to the bottom of Step 4. Next to the big **Create** button, look for **"Save as stack"** (or "Create and save as stack"; wording varies by Oracle's UI version). Click it.
+
+1. Name: `my-oraclaw-stack`.
+2. Compartment: `claws`.
+3. Save.
+
+Then click **Create** to actually provision the instance.
+
+**Why the stack matters:** if creation fails with "Out of host capacity" (common at first — Oracle's Ampere A1 pool fluctuates), you can retry without re-filling all 4 wizard pages. Just go to hamburger menu → **Developer Services** → **Resource Manager** → **Stacks** → click your stack → **Actions → Apply**. Oracle retries with your saved config.
+
+### After Create — wait + record the IP
+
+2–3 minutes to Running state. On the instance detail page, write down or screenshot the **Public IP address**. You won't use it often once Tailscale is up, but it's your break-glass route if Tailscale ever breaks.
 
 ---
 
