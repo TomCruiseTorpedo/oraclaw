@@ -53,7 +53,7 @@ OpenClaw is an AI "agentic harness" — think of it like Cursor or Claude Code, 
 - OpenClaw **never binds to a public IP**. It listens on `localhost` only. Tailscale forwards traffic over its encrypted private network.
 - You pay for LLM calls (OpenRouter API), not hosting. Hosting is free as long as you stay within Oracle's "Always Free" tier.
 
-> **Asking your AI coding assistant (Copilot, Cursor, Antigravity, etc.) for help?** Point it at **`AGENTS.md`** at the repo root. It contains a pre-written context block of facts about this setup, so even weaker free-tier models won't hallucinate wrong paths or commands.
+> **Asking your AI coding assistant (Antigravity, Cursor, GitHub Copilot Chat in VS Code, etc.) for help?** Point it at **`AGENTS.md`** at the repo root. It contains a pre-written context block of facts about this setup, so even weaker free-tier models won't hallucinate wrong paths or commands.
 
 ---
 
@@ -82,10 +82,10 @@ OpenClaw is an AI "agentic harness" — think of it like Cursor or Claude Code, 
 **A helpful extra:** an AI coding assistant. For this kit, in preference order:
 
 1. **Antigravity** (Google's agentic IDE) — most generous free tier, uses your existing Google account, runs shell commands on your machine by default. **Our first choice.**
-2. **Cursor** — strong AI IDE. Before you start, open **Cursor Settings → Agents → Auto-Run → Auto-Run Mode** and switch it off **"Auto-Run in Sandbox"** to a non-sandbox mode so Cursor's commands can actually reach your host machine (see [docs/HARNESS-PROMPTS.md § Why Cursor](HARNESS-PROMPTS.md#why-cursor-second-choice) for why this trips up a lot of first-timers).
+2. **Cursor** — strong AI IDE. Before you start, open **Cursor Settings → Agents → Auto-Run → Auto-Run Mode** and switch it off the default **"Auto-Run in Sandbox"** to either **"Ask Every Time"** (recommended for first-timers — approve each command) or **"Run Everything (Unsandboxed)"** (faster — Cursor just runs things). Either lets Cursor's commands reach your host; sandbox mode blocks SSH, Tailscale, and the repo on disk. See [docs/HARNESS-PROMPTS.md § Why Cursor](HARNESS-PROMPTS.md#why-cursor-second-choice) for why this trips up a lot of first-timers.
 3. **GitHub Copilot Chat in VS Code** — weakest free models (Claude Haiku 4.5, GPT-5-mini) but the biggest usage cap. Good fallback.
 
-Skip **Claude.ai**: Claude Code (the agentic CLI) requires paid Pro/Max, and the free web chat can't run shell commands.
+We don't lead with **Claude.ai** because the free tier can't run shell commands and Claude Code (the agentic CLI) needs paid Pro/Max. If you already have Claude Pro/Max, Claude Code works fine with this kit — it just isn't a free-tier option for the target audience here.
 
 **Credit-saving trick:** use your AI's most powerful model *once* to ingest the whole repo, then switch to a cheap/fast model for the step-by-step walk. Premium model understanding is what matters for ingestion; a cheap model is plenty for "paste the next command, read the output." Full details + exact prompts in [docs/HARNESS-PROMPTS.md](HARNESS-PROMPTS.md).
 
@@ -756,7 +756,7 @@ Mosh survives Wi-Fi changes and lid-close. Tmux keeps your work going even if th
 
 ## 9. Troubleshooting (Symptom → Fix)
 
-> **Before deep-diving:** if your AI coding assistant can help (Copilot, Cursor, Antigravity, etc.), open **`docs/WHEN-THINGS-GO-WRONG.md`** — it has copy-paste-ready prompts for the common failures below, plus instructions for how to feed the AI enough context to actually help you.
+> **Before deep-diving:** if your AI coding assistant can help (Antigravity, Cursor, GitHub Copilot Chat in VS Code, etc.), open **`docs/WHEN-THINGS-GO-WRONG.md`** — it has copy-paste-ready prompts for the common failures below, plus instructions for how to feed the AI enough context to actually help you.
 
 ### "I can't reach the dashboard URL"
 

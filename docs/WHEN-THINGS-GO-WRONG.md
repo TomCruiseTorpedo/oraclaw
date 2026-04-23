@@ -1,10 +1,10 @@
 # When Things Go Wrong — Copy-Paste Help Prompts
 
-When Oraclaw misbehaves, your AI coding assistant (Copilot, Cursor, Antigravity, Claude Code, etc.) can help you diagnose it — but only if you give it enough context.  Weaker free-tier models (Haiku 4.5, GPT-5-mini, etc.) especially benefit from a pre-formed prompt instead of a vague "it's broken".
+When Oraclaw misbehaves, your AI coding assistant (Antigravity, Cursor, GitHub Copilot Chat in VS Code — or Claude Code / another tool if you have a paid plan) can help you diagnose it, but only if you give it enough context. Weaker free-tier models (Haiku 4.5, GPT-5-mini, etc.) especially benefit from a pre-formed prompt instead of a vague "it's broken".
 
 This file is a collection of such prompts.  Find the section that matches your symptom, copy the whole block into your AI's chat, add any details the block asks for, and send.
 
-Most harnesses (Cursor, Antigravity, Claude Code) will also auto-load `AGENTS.md` at the repo root, which gives the AI the technical stack context.  If yours doesn't (e.g. Copilot in VS Code when the repo isn't open), paste the contents of `AGENTS.md` into the chat first, before the symptom prompt.
+Most harnesses (Antigravity, Cursor, Claude Code if you have it) will also auto-load `AGENTS.md` at the repo root, which gives the AI the technical stack context. If yours doesn't (e.g. Copilot Chat in VS Code when the repo isn't open), paste the contents of `AGENTS.md` into the chat first, before the symptom prompt.
 
 ---
 

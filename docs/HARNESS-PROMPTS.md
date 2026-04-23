@@ -21,15 +21,21 @@ Short version: **Antigravity first. Cursor or GitHub Copilot Chat in VS Code are
 
 ### Why Cursor (second choice)
 
-Solid AI IDE. Main catch: the default **Auto-Run in Sandbox** mode isolates the AI's commands from your actual host, so it can't touch your SSH keys, Tailscale, or the Oraclaw repo on your disk. **Before you start setup, change it:** open **Cursor Settings → Agents → Auto-Run → Auto-Run Mode**, and switch it off **"Auto-Run in Sandbox"** to a mode that lets commands run on your host (the dropdown will show the non-sandbox options; the description under it explains what each one does). Included models (Composer 1.5) are capable. If you already use Cursor daily, it's a fine choice.
+Solid AI IDE. Main catch: the default **Auto-Run in Sandbox** mode isolates the AI's commands from your actual host, so it can't touch your SSH keys, Tailscale, or the Oraclaw repo on your disk. **Before you start setup, change it:** open **Cursor Settings → Agents → Auto-Run → Auto-Run Mode**. The dropdown has three choices:
+
+- **Ask Every Time** — approve each command before it runs. **Recommended for first-timers.** Slightly slower but you see every step, which is good training.
+- **Auto-Run in Sandbox** (default) — the one that blocks host access. **Don't leave it on this for Oraclaw setup.**
+- **Run Everything (Unsandboxed)** — Cursor just runs things on your host with no prompt. Fastest; only pick this if you've already read the Field Manual and you're comfortable.
+
+Included models (Composer 1.5) are capable. If you already use Cursor daily, it's a fine choice.
 
 ### Why GitHub Copilot Chat in VS Code (third choice)
 
 Weakest free models of the three (Claude Haiku 4.5, GPT-5-mini) but the biggest free-tier usage cap, by a lot. Install: VS Code → Extensions → search "GitHub Copilot Chat". Good fallback if Antigravity or Cursor start rate-limiting you mid-setup.
 
-### Why not Claude.ai?
+### Why not Claude.ai as a primary recommendation?
 
-Claude Code (the agentic CLI) requires a paid Claude Pro or Max subscription — noobs on the free tier can't use it. Claude.ai's free web chat can't execute shell commands either. Skip it for this setup.
+Claude Code (the agentic CLI) requires a paid Claude Pro or Max subscription, so it's off the table for anyone on the free tier we're targeting here. Claude.ai's free web chat can't execute shell commands either. **If you already pay for Claude Pro/Max, Claude Code works great with this kit** — treat it as an Antigravity-class option (capable, runs shell commands), we just don't lead with it because most first-timers landing here are on a free tier.
 
 ---
 
