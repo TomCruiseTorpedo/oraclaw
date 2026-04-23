@@ -129,7 +129,9 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
   git curl wget ca-certificates gnupg jq unzip build-essential htop \
   tmux mosh ufw fail2ban unattended-upgrades tzdata lsof \
   ripgrep fzf zoxide bat eza net-tools dnsutils sysstat \
-  mtr-tiny fd-find ncdu tree iotop iperf3 glow pandoc btop procs
+  mtr-tiny fd-find ncdu tree iotop iperf3 pandoc btop
+# Note: `procs` and `glow` are NOT in Ubuntu noble repos — installed below
+# from upstream (GitHub releases + charm apt repo).
 
 # Ubuntu/Debian rename fd → fdfind and bat → batcat to avoid package-name
 # collisions. Add symlinks so the canonical names Just Work for people (and
@@ -162,6 +164,42 @@ if ! command -v yq >/dev/null 2>&1; then
   sudo curl -fsSL -o /usr/local/bin/yq \
     "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${YQ_ARCH}"
   sudo chmod +x /usr/local/bin/yq
+fi
+
+# glow (charmbracelet markdown renderer) via charm's apt repo.
+if ! command -v glow >/dev/null 2>&1; then
+  say "   installing glow via charm apt repo…"
+  sudo mkdir -p /etc/apt/keyrings
+  curl -fsSL https://repo.charm.sh/apt/gpg.key | \
+    sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+  echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | \
+    sudo tee /etc/apt/sources.list.d/charm.list >/dev/null
+  sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq glow
+fi
+
+# procs (dalance/procs — modern `ps` replacement).  Direct binary from GH releases.
+if ! command -v procs >/dev/null 2>&1; then
+  say "   installing procs binary from GitHub releases…"
+  PROCS_ARCH_UNAME=$(uname -m)
+  case "$PROCS_ARCH_UNAME" in
+    aarch64) PROCS_GLOB="procs-v[0-9.]*-aarch64-linux.zip" ;;
+    x86_64)  PROCS_GLOB="procs-v[0-9.]*-x86_64-linux.zip" ;;
+    *) warn "skipping procs: unsupported arch $PROCS_ARCH_UNAME"; PROCS_GLOB="" ;;
+  esac
+  if [[ -n "$PROCS_GLOB" ]]; then
+    PROCS_TMP=$(mktemp -d)
+    PROCS_URL=$(curl -fsSL https://api.github.com/repos/dalance/procs/releases/latest \
+      | grep -oE 'https://[^"]+'"${PROCS_GLOB//\*/[^\"]+}" | head -1)
+    if [[ -n "$PROCS_URL" ]]; then
+      curl -fsSL "$PROCS_URL" -o "$PROCS_TMP/procs.zip"
+      (cd "$PROCS_TMP" && unzip -qq procs.zip)
+      sudo install -m 0755 "$PROCS_TMP/procs" /usr/local/bin/procs
+    else
+      warn "couldn't resolve procs download URL from GitHub API (rate-limited?)"
+    fi
+    rm -rf "$PROCS_TMP"
+  fi
 fi
 
 sudo timedatectl set-timezone "$TIMEZONE" || warn "Couldn't set tz $TIMEZONE"

@@ -32,11 +32,13 @@ set -euo pipefail
 
 echo "[inner] apt update + install shell QoL utilities"
 sudo DEBIAN_FRONTEND=noninteractive apt-get update -y -q
+# Note: procs + glow are NOT in Ubuntu noble apt repos — installed
+# separately below from upstream (GitHub releases + charm apt repo).
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q \
     ripgrep fzf zoxide bat eza tree \
     net-tools dnsutils mtr-tiny iperf3 \
-    sysstat iotop btop procs ncdu \
-    glow pandoc fd-find curl ca-certificates
+    sysstat iotop btop ncdu \
+    pandoc fd-find curl ca-certificates
 
 # Ubuntu ships fd as "fdfind" and bat as "batcat" — wire short names.
 mkdir -p "$HOME/.local/bin"
@@ -56,6 +58,18 @@ if ! command -v gh >/dev/null 2>&1; then
     sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q gh
 fi
 
+# glow (charmbracelet) via charm apt repo — not in Ubuntu stock repos.
+if ! command -v glow >/dev/null 2>&1; then
+    echo "[inner] installing glow via charm apt repo"
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://repo.charm.sh/apt/gpg.key \
+        | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+    echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" \
+        | sudo tee /etc/apt/sources.list.d/charm.list >/dev/null
+    sudo DEBIAN_FRONTEND=noninteractive apt-get update -y -q
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q glow
+fi
+
 # yq (mikefarah) — single static binary; Ubuntu's is the wrong one.
 if ! command -v yq >/dev/null 2>&1; then
     echo "[inner] installing yq (mikefarah) binary"
@@ -63,6 +77,28 @@ if ! command -v yq >/dev/null 2>&1; then
     sudo curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${ARCH}" \
         -o /usr/local/bin/yq
     sudo chmod +x /usr/local/bin/yq
+fi
+
+# procs (dalance/procs) — single static binary from GitHub releases.
+if ! command -v procs >/dev/null 2>&1; then
+    echo "[inner] installing procs binary from GitHub releases"
+    ARCH_UNAME=$(uname -m)  # aarch64 / x86_64
+    case "$ARCH_UNAME" in
+        aarch64) PROCS_ASSET="procs-v*-aarch64-linux.zip" ;;
+        x86_64)  PROCS_ASSET="procs-v*-x86_64-linux.zip" ;;
+        *) echo "[inner] skipping procs: unsupported arch $ARCH_UNAME" ;;
+    esac
+    if [ -n "${PROCS_ASSET:-}" ]; then
+        TMPD=$(mktemp -d)
+        URL=$(curl -fsSL https://api.github.com/repos/dalance/procs/releases/latest \
+            | grep -oE "https://[^\"]+${PROCS_ASSET/\*/[^\"]+}" | head -1)
+        if [ -n "$URL" ]; then
+            curl -fsSL "$URL" -o "$TMPD/procs.zip"
+            (cd "$TMPD" && unzip -qq procs.zip 2>/dev/null || sudo apt-get install -y -q unzip && unzip -qq procs.zip)
+            sudo install -m 0755 "$TMPD/procs" /usr/local/bin/procs
+            rm -rf "$TMPD"
+        fi
+    fi
 fi
 
 echo "[inner] done — installed versions:"
