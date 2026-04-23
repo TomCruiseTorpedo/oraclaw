@@ -21,21 +21,29 @@ If the dashboard comes back on its own after 30–90 seconds, the auto-recovery 
 
 ## The one command that fixes it
 
-From your Mac terminal, run:
+From your Mac **Terminal** or Windows **PowerShell**, run:
 
 `ssh my-oraclaw 'systemctl --user restart openclaw-gateway'`
 
-Replace `my-oraclaw` with whatever SSH alias you gave your VM (the same alias you used during `bootstrap-mac.sh` on Mac or `bootstrap-windows.ps1` on Windows). Wait 30–60 seconds, then reload the dashboard in your browser.
+(The `ssh` command is identical on both platforms — Windows 11 ships OpenSSH built-in.) Replace `my-oraclaw` with whatever SSH alias you gave your VM (the same alias you used during `bootstrap-mac.sh` on Mac or `bootstrap-windows.ps1` on Windows). Wait 30–60 seconds, then reload the dashboard in your browser.
 
 ---
 
 ## The even shorter command (if you have the kit scripts)
 
-From the kit directory on your client machine (`~/oraclaw/` on Mac, `%USERPROFILE%\oraclaw\` on Windows):
-
-`bash ~/oraclaw/scripts/recover-gateway.sh my-oraclaw`
-
 This script does the restart for you, then polls the `/health` endpoint until it comes back green (or gives up with next-step guidance after 2 minutes). Same end result as the one-liner above, with a clearer pass/fail signal.
+
+**Mac (Terminal):**
+
+```bash
+bash ~/oraclaw/scripts/recover-gateway.sh my-oraclaw
+```
+
+**Windows 11 (PowerShell):**
+
+```powershell
+& $env:USERPROFILE\oraclaw\scripts\recover-gateway.ps1 my-oraclaw
+```
 
 ---
 

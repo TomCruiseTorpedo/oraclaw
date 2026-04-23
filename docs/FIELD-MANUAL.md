@@ -693,9 +693,21 @@ exit
 
 In most cases your Oraclaw heals itself within 30–90 seconds — wait a beat before reaching for a terminal. If it's been longer than two minutes and the dashboard is still showing `502`:
 
+**Mac (Terminal):**
+
 ```bash
-bash ~/oraclaw/scripts/recover-gateway.sh my-oraclaw    # from your client
-# or, on the VM:
+bash ~/oraclaw/scripts/recover-gateway.sh my-oraclaw
+```
+
+**Windows 11 (PowerShell):**
+
+```powershell
+& $env:USERPROFILE\oraclaw\scripts\recover-gateway.ps1 my-oraclaw
+```
+
+**Or the raw command (either platform):**
+
+```bash
 ssh my-oraclaw 'systemctl --user restart openclaw-gateway'
 ```
 
@@ -822,9 +834,21 @@ The fallback chain automatically tries the next model when one fails. Full guide
 
 Wait a beat — auto-recovery usually kicks in within 60–90 seconds. If it doesn't:
 
+**Mac (Terminal):**
+
 ```bash
-bash ~/oraclaw/scripts/recover-gateway.sh my-oraclaw    # from your client
-# or, on the VM:
+bash ~/oraclaw/scripts/recover-gateway.sh my-oraclaw
+```
+
+**Windows 11 (PowerShell):**
+
+```powershell
+& $env:USERPROFILE\oraclaw\scripts\recover-gateway.ps1 my-oraclaw
+```
+
+**Or the raw command (either platform):**
+
+```bash
 ssh my-oraclaw 'systemctl --user restart openclaw-gateway'
 ```
 

@@ -6,11 +6,23 @@
 
 ## ⚠ If the dashboard breaks after clicking "Update"
 
-Most of the time it fixes itself in 60–90 seconds (the auto-recovery safety net does its thing).  If not, one command brings it back:
+Most of the time it fixes itself in 60–90 seconds (the auto-recovery safety net does its thing). If not, one command brings it back:
+
+**Mac (Terminal):**
 
 ```bash
 bash ~/oraclaw/scripts/recover-gateway.sh my-oraclaw
-# or, manually:
+```
+
+**Windows 11 (PowerShell):**
+
+```powershell
+& $env:USERPROFILE\oraclaw\scripts\recover-gateway.ps1 my-oraclaw
+```
+
+**Or, manually (either platform):**
+
+```bash
 ssh my-oraclaw 'systemctl --user restart openclaw-gateway'
 ```
 
@@ -172,7 +184,7 @@ systemctl --user restart openclaw-gateway
 
 | Symptom | Command |
 |---------|---------|
-| Dashboard shows 502 after clicking Update | `bash ~/oraclaw/scripts/recover-gateway.sh my-oraclaw` |
+| Dashboard shows 502 after clicking Update | `ssh my-oraclaw 'systemctl --user restart openclaw-gateway'` (or the `recover-gateway.sh`/`.ps1` helper) |
 | Dashboard shows "unauthorized" | `jq -r .gateway.auth.token ~/.openclaw/openclaw.json` |
 | Dashboard won't load | `systemctl --user status openclaw-gateway` |
 | Reply never comes | `journalctl --user -u openclaw-gateway -n 30` |
