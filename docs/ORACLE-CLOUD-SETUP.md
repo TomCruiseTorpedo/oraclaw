@@ -90,15 +90,21 @@ The script below creates an SSH keypair and prints the public half. Zero depende
 1. Open **PowerShell** (Windows key → type `Terminal` → Enter). [Never used one before?](TERMINAL-BASICS.md)
 2. First, install git + clone the Oraclaw repo:
 
+   **Step A.** Allow scripts to run (one-time):
+
    ```powershell
-   # Allow scripts to run (one-time)
    Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+   ```
 
-   # Install git via winget (built into Windows 11)
-   winget install --id Git.Git --exact --silent `
-                  --accept-source-agreements --accept-package-agreements
+   **Step B.** Install git via winget (built into Windows 11):
 
-   # Close and reopen PowerShell so `git` is on PATH, then:
+   ```powershell
+   winget install --id Git.Git --exact --silent --accept-source-agreements --accept-package-agreements
+   ```
+
+   **Step C.** **Close this PowerShell window and open a fresh one** so `git` is on PATH. Then clone the repo:
+
+   ```powershell
    git clone https://github.com/TomCruiseTorpedo/oraclaw.git $env:USERPROFILE\oraclaw
    ```
 

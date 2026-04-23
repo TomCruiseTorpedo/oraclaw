@@ -50,13 +50,15 @@ journalctl  --user -u openclaw-gateway -n 50  # last 50 lines
 
 ## Update OpenClaw
 
-Prefer this command-line path over the `Update` button inside the dashboard.  The dashboard button occasionally leaves the service stuck (the auto-recovery safety net catches it within a minute or two, but this path avoids the round-trip).
+Prefer this command-line path over the `Update` button inside the dashboard. The dashboard button occasionally leaves the service stuck (the auto-recovery safety net catches it within a minute or two, but this path avoids the round-trip).
+
+**Run this on the VM** (one line — all three commands chained so you can't accidentally stop halfway):
 
 ```bash
-source ~/.nvm/nvm.sh
-npm install -g openclaw@latest
-systemctl --user restart openclaw-gateway
+source ~/.nvm/nvm.sh && npm install -g openclaw@latest && systemctl --user restart openclaw-gateway
 ```
+
+If you'd rather see each step separately: `source ~/.nvm/nvm.sh` loads Node's version manager, `npm install -g openclaw@latest` pulls the newest release, and `systemctl --user restart openclaw-gateway` picks it up. The `&&` between them means "only run the next if the previous succeeded" — so an npm-install error stops you from restarting on a broken install.
 
 If you pressed the dashboard button and it didn't come back, see the banner at the top of this sheet.
 

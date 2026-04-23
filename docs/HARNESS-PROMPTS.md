@@ -1,10 +1,58 @@
 # Harness Prompts — talking to your AI assistant
 
-**This page is for people setting up Oraclaw with help from an AI coding assistant** (GitHub Copilot, Cursor, Claude Code, Antigravity, etc.).
+**This page is for people setting up Oraclaw with help from an AI coding assistant.** The three we recommend — in preference order — are **Antigravity**, **Cursor**, and **GitHub Copilot Chat in VS Code**. Rationale below.
 
 You don't need to memorize any of the setup steps. You can paste the prompts below into your AI assistant and it'll walk you through each phase one step at a time, waiting for you to say "done" or "stuck" between steps.
 
 Every prompt below assumes your AI assistant has read `AGENTS.md` at the repo root. Most harnesses auto-load that file. If yours doesn't, paste the contents of `AGENTS.md` into the chat first, before any prompt here.
+
+---
+
+## Which AI assistant should I use?
+
+Short version: **Antigravity first. Cursor or GitHub Copilot Chat in VS Code are reasonable alternatives.**
+
+### Why Antigravity (recommended)
+
+- **Most generous free tier of the three** — you'll rarely run out of credits during a full Oraclaw setup.
+- **You already have a Google account.** Antigravity is Google's agentic IDE — sign in with the account you use for Gmail / Drive / YouTube. No new billing relationship.
+- **Runs shell commands on your machine by default.** This matters *a lot* for this kit. Cursor's default "sandbox" mode refuses to execute shell commands until you explicitly flip a setting — which leaves a lot of first-timers stuck, because the AI is reading the Field Manual to them but can't actually *run* any of it. Antigravity doesn't have that problem.
+- Models are strong (Gemini 3.1 Pro, Claude Sonnet 4.6).
+
+### Why Cursor (second choice)
+
+Solid AI IDE. Main catch: the default sandbox refuses shell commands. **Before you start, go to Settings → Terminal → allow shell execution.** Free tier has tighter usage caps than Antigravity, but the included models (Composer 1.5) are capable. If you already use Cursor daily, it's a fine choice.
+
+### Why GitHub Copilot Chat in VS Code (third choice)
+
+Weakest free models of the three (Claude Haiku 4.5, GPT-5-mini) but the biggest free-tier usage cap, by a lot. Install: VS Code → Extensions → search "GitHub Copilot Chat". Good fallback if Antigravity or Cursor start rate-limiting you mid-setup.
+
+### Why not Claude.ai?
+
+Claude Code (the agentic CLI) requires a paid Claude Pro or Max subscription — noobs on the free tier can't use it. Claude.ai's free web chat can't execute shell commands either. Skip it for this setup.
+
+---
+
+## Don't run out of credits mid-setup — the model-switch trick
+
+Free-tier quotas in all three tools split into two pools:
+
+1. **Premium models** (Gemini 3.1 Pro, Sonnet 4.6, GPT-5, Composer 1.5) — small pool, burns fast.
+2. **Cheap models** (Gemini 2.5 Flash, Haiku 4.5, GPT-5-mini) — much larger pool.
+
+The trick: **use a premium model ONCE to ingest this whole repo, then switch to a cheap model for the step-by-step execution.** Premium model comprehension is what matters for building context; a cheap model is plenty for "paste the next command, read the output, paste it back."
+
+Paste this FIRST (with your premium model selected):
+
+```
+Read this whole Oraclaw repo — every file in docs/, every script in
+scripts/, plus AGENTS.md and README.md at the root. Then give me a short
+summary: what is this kit, what will I end up with, and the three biggest
+gotchas for first-timers. After you confirm you've read everything, I'll
+switch you to a cheaper/faster model and we'll start the walkthrough.
+```
+
+After you've read the summary, switch to the cheapest model your harness offers, then paste the **"Starting fresh"** prompt below.
 
 ---
 

@@ -79,13 +79,17 @@ OpenClaw is an AI "agentic harness" — think of it like Cursor or Claude Code, 
 - Prior command-line experience. This guide assumes zero. If the idea of opening a terminal feels intimidating, read **[docs/TERMINAL-BASICS.md](TERMINAL-BASICS.md)** first — 5 minutes, demystifies the scariest parts.
 - A static IP or a domain name. Tailscale handles that.
 
-**A helpful extra:** an AI coding assistant you can ask questions when you get stuck. Any of these free tiers work well:
+**A helpful extra:** an AI coding assistant. For this kit, in preference order:
 
-- **GitHub Copilot in VS Code** — generous free usage, weaker models (Claude Haiku 4.5, GPT-5-mini)
-- **Cursor free tier** — tighter usage limits, stronger models (Composer 1.5)
-- **Antigravity free tier** — tighter limits, strongest models (Gemini 3.1 Pro, Claude Sonnet 4.6)
+1. **Antigravity** (Google's agentic IDE) — most generous free tier, uses your existing Google account, runs shell commands on your machine by default. **Our first choice.**
+2. **Cursor** — strong AI IDE. Before you start, go to **Settings → Terminal → allow shell execution** (it's off by default — this is why a lot of Cursor first-timers get stuck).
+3. **GitHub Copilot Chat in VS Code** — weakest free models (Claude Haiku 4.5, GPT-5-mini) but the biggest usage cap. Good fallback.
 
-**[docs/HARNESS-PROMPTS.md](HARNESS-PROMPTS.md)** has copy-pastable prompts you can feed to your AI assistant at each phase of setup — lets the AI walk you through step by step. For specific failures after setup, **[docs/WHEN-THINGS-GO-WRONG.md](WHEN-THINGS-GO-WRONG.md)** has symptom-matched prompts.
+Skip **Claude.ai**: Claude Code (the agentic CLI) requires paid Pro/Max, and the free web chat can't run shell commands.
+
+**Credit-saving trick:** use your AI's most powerful model *once* to ingest the whole repo, then switch to a cheap/fast model for the step-by-step walk. Premium model understanding is what matters for ingestion; a cheap model is plenty for "paste the next command, read the output." Full details + exact prompts in [docs/HARNESS-PROMPTS.md](HARNESS-PROMPTS.md).
+
+For specific failures after setup, **[docs/WHEN-THINGS-GO-WRONG.md](WHEN-THINGS-GO-WRONG.md)** has symptom-matched prompts.
 
 ---
 
@@ -114,18 +118,27 @@ bash ~/oraclaw/scripts/generate-ssh-key.sh
 
 Open **Windows Terminal** (Start → type "Terminal") or **PowerShell**.
 
+**Step 1.** Allow scripts to run (one-time per user):
+
 ```powershell
-# Allow scripts to run (one-time per user)
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+```
 
-# Install git + clone the repo
-winget install --id Git.Git --exact --silent `
-               --accept-source-agreements --accept-package-agreements
+**Step 2.** Install git:
 
-# Close and reopen PowerShell so git is on PATH, then:
+```powershell
+winget install --id Git.Git --exact --silent --accept-source-agreements --accept-package-agreements
+```
+
+**Step 3.** **Close this PowerShell window and open a fresh one** so `git` is on PATH. Then clone the repo:
+
+```powershell
 git clone https://github.com/TomCruiseTorpedo/oraclaw.git $env:USERPROFILE\oraclaw
+```
 
-# Run the SSH-key generator
+**Step 4.** Run the SSH-key generator:
+
+```powershell
 & $env:USERPROFILE\oraclaw\scripts\generate-ssh-key.ps1
 ```
 
@@ -400,15 +413,13 @@ Two supported clients: **Mac (Apple Silicon)** and **Windows 11 PC**. Follow whi
 This installs: Xcode Command Line Tools → Homebrew → git, mosh, tmux, jq → Tailscale → generates an SSH key → adds an SSH shortcut.
 
 1. Open **Terminal.app** (press ⌘+Space → type `Terminal` → Enter).
-2. Clone the kit. If this is the FIRST time you've ever used `git` on this Mac, paste this and enter your password when macOS asks:
+2. Clone the kit:
 
    ```bash
-   # First-time Mac users: install just enough to clone
-   if ! command -v git >/dev/null; then xcode-select --install; fi
-
-   # Clone the kit into ~/oraclaw
    git clone https://github.com/TomCruiseTorpedo/oraclaw.git ~/oraclaw
    ```
+
+   **First-timer note:** if this is the FIRST time you've run `git` on this Mac, macOS will pop up a dialog — "The git command requires the command line developer tools." Click **Install** and wait ~5 minutes for Xcode Command Line Tools to download. When it finishes, re-run the same `git clone` command above.
 
 3. Run the bootstrap:
 
@@ -432,24 +443,26 @@ This installs: git, Tailscale, jq via **winget** → generates an SSH key → ad
    Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
    ```
 
-3. Install git, then clone the kit:
+3. Install git (skip if you already have it):
 
    ```powershell
-   # If git isn't installed yet:
    winget install --id Git.Git --exact --silent --accept-source-agreements --accept-package-agreements
+   ```
 
-   # Close and reopen PowerShell (as admin) so `git` is on PATH, then:
+4. **Close this PowerShell window and open a fresh one (as admin again)** so `git` is on PATH. Then clone the kit:
+
+   ```powershell
    git clone https://github.com/TomCruiseTorpedo/oraclaw.git $env:USERPROFILE\oraclaw
    ```
 
-4. Run the bootstrap:
+5. Run the bootstrap:
 
    ```powershell
    & $env:USERPROFILE\oraclaw\scripts\bootstrap-windows.ps1
    ```
 
-5. Follow the prompts. When it shows your SSH public key, **that's what you paste into Oracle Cloud in §3.3 step 9** if you haven't already.
-6. When it asks for the Tailscale hostname and subdomain — leave the PowerShell window open and do Section 5 first.
+6. Follow the prompts. When it shows your SSH public key, **that's what you paste into Oracle Cloud in §3.3 step 9** if you haven't already.
+7. When it asks for the Tailscale hostname and subdomain — leave the PowerShell window open and do Section 5 first.
 
 **Don't have a Tailscale account yet?** The bootstrap opens a browser window for Tailscale login. On that screen, click **Sign up** (or log in with Google, GitHub, Microsoft, or Apple — Tailscale creates the account automatically on first login). Free personal tier supports up to 100 devices.
 
@@ -524,15 +537,23 @@ SSH into the VM:
 ssh my-oraclaw
 ```
 
-Copy the installer script onto the VM and run it:
+Copy the installer script onto the VM and run it. Pick your platform — run the block for yours, not both.
+
+**Mac (Terminal):**
 
 ```bash
-# From your client — copy the script to the VM
-scp ~/oraclaw/scripts/install-oraclaw.sh my-oraclaw:/tmp/   # Mac
-# or (Windows):
-#   scp $env:USERPROFILE\oraclaw\scripts\install-oraclaw.sh my-oraclaw:/tmp/
+scp ~/oraclaw/scripts/install-oraclaw.sh my-oraclaw:/tmp/
+```
 
-# SSH in and run it
+**Windows 11 (PowerShell):**
+
+```powershell
+scp $env:USERPROFILE\oraclaw\scripts\install-oraclaw.sh my-oraclaw:/tmp/
+```
+
+Then on **either** platform, SSH in and run it:
+
+```bash
 ssh my-oraclaw 'bash /tmp/install-oraclaw.sh'
 ```
 

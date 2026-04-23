@@ -26,7 +26,7 @@ Setup has two main flows depending on how much help you have. Both cover the sam
 
 ### 🧑‍🏫 Path A — With help (recommended)
 
-Choose this if someone is walking you through (in person, over screen-share, or via an AI coding assistant like GitHub Copilot, Cursor, Claude, or Antigravity).
+Choose this if someone is walking you through — in person, over screen-share, or via an AI coding assistant. For the AI-assistant case we recommend **Antigravity** first (most generous free tier, uses your existing Google account, runs shell commands by default), with **Cursor** or **GitHub Copilot Chat in VS Code** as alternatives. Full rationale + credit-saving tips in [docs/HARNESS-PROMPTS.md § Which assistant](docs/HARNESS-PROMPTS.md#which-ai-assistant-should-i-use).
 
 1. Your helper walks you through [**docs/ORACLE-CLOUD-SETUP.md**](docs/ORACLE-CLOUD-SETUP.md) — a standalone walkthrough for account creation, PAYG upgrade, SSH key generation, and VM creation. ~1 hour, most of it waiting on Oracle.
 2. When your VM is running, your helper hands you off to [**docs/FIELD-MANUAL.md**](docs/FIELD-MANUAL.md) **Section 4** (client setup → connect → install Oraclaw → open dashboard). ~20 minutes.
@@ -92,7 +92,8 @@ When it finishes, open the dashboard URL in your browser and paste the login tok
 - Unattended security upgrades enabled
 - Swap auto-sized to ~2/3 of detected RAM (6 GB RAM → 4 GB swap; 12 GB → 8 GB; 24 GB → 16 GB)
 - 1 heartbeat cron job, every 6 hours, `isolatedSession: true` (keeps Main and Heartbeat chats separate)
-- Model allowlist: `openrouter/nvidia/nemotron-3-super-120b-a12b:free` primary + 4 free fallbacks — every slug routes through your OpenRouter API key (no extra per-provider keys needed)
+- Model allowlist: **1 primary + 4 free fallbacks = 5 total.** Primary is `openrouter/nvidia/nemotron-3-super-120b-a12b:free`. Every slug routes through your OpenRouter API key — no extra per-provider keys needed.
+- Shell quality-of-life utilities baked in (ripgrep, fzf, zoxide, bat, eza, fd, tree, btop, glow, yq, gh, and more) — so when your AI assistant SSHes into the VM, it has modern tools to work with
 - A dedicated tiny model for heartbeat check-ins (so the recurring background work is free and fast, even when your main model is bigger)
 - **Auto-recovery safety net:** if the gateway ever dies — including the one failure mode where clicking the dashboard's Update button leaves it stuck — `systemd` relaunches it within 10 seconds, and a background health-probe timer kicks it again 60 seconds later if it's still not responding.  See [docs/RECOVERY.md](docs/RECOVERY.md) for the manual escape hatch if you ever need it (most people never will).
 
@@ -118,7 +119,7 @@ The full 1 / 2 / 4 sizing options are in [docs/FIELD-MANUAL.md § 3.3](docs/FIEL
 | [docs/RECOVERY.md](docs/RECOVERY.md) | What to do if the dashboard breaks after you click "Update" |
 | [docs/MODELS.md](docs/MODELS.md) | How the model chain works + how to swap a model safely |
 | [docs/WHEN-THINGS-GO-WRONG.md](docs/WHEN-THINGS-GO-WRONG.md) | Copy-paste AI help prompts for common post-setup failures |
-| [AGENTS.md](AGENTS.md) | Context file auto-loaded by AI coding assistants (Cursor, Claude Code, Antigravity, etc.) so they don't have to be taught the stack each time |
+| [AGENTS.md](AGENTS.md) | Context file auto-loaded by AI coding assistants (Antigravity, Cursor, GitHub Copilot Chat in VS Code) so they don't have to be taught the stack each time |
 
 ---
 

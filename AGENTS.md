@@ -1,9 +1,10 @@
 # AGENTS.md
 
-Context for AI coding assistants (Cursor, Copilot in VS Code, Antigravity,
-Claude Code, etc.). Auto-loaded when the user opens this repo or
-the target OpenClaw host. Keeps you grounded so weaker free-tier models
-don't hallucinate paths, ports, or commands.
+Context for AI coding assistants (**Antigravity**, **Cursor**, or **GitHub
+Copilot Chat in VS Code** — see `docs/HARNESS-PROMPTS.md` § Which
+assistant). Auto-loaded when the user opens this repo or the target
+OpenClaw host. Keeps you grounded so weaker free-tier models don't
+hallucinate paths, ports, or commands.
 
 Pair with:
 
