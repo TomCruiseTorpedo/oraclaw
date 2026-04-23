@@ -10,6 +10,7 @@ Version: 1.0 · For Ubuntu 24.04 (aarch64 / Ampere A1)
 
 0. [What This Is](#0-what-this-is)
 1. [What You Need Before Starting](#1-what-you-need-before-starting)
+1.5. [Generate your SSH key (2 minutes)](#15-generate-your-ssh-key-2-minutes-no-dependencies)
 2. [Create Your Oracle Cloud Account](#2-create-your-oracle-cloud-account)
 3. [Create the Free VM](#3-create-the-free-vm)
 4. [Set Up Your Client Machine (One Command)](#4-set-up-your-client-machine-one-command)
@@ -80,6 +81,51 @@ OpenClaw is an AI "agentic harness" — think of it like Cursor or Claude Code, 
 - **Antigravity free tier** — tighter limits, strongest models (Gemini 3.1 Pro, Claude Sonnet 4.6)
 
 Copy a section of `docs/WHEN-THINGS-GO-WRONG.md` into whichever you prefer when a symptom matches.
+
+---
+
+## 1.5 Generate your SSH key (2 minutes, no dependencies)
+
+You'll need an SSH key **before you create your VM** in Section 3. Oracle Cloud locks the SSH key onto the VM at creation time, and changing it afterward means using the OCI serial console — tedious. Getting the key ready first makes Section 3 a single uninterrupted pass.
+
+Your SSH key lives on your client machine (Mac or Windows 11 PC). The *public* half gets pasted into Oracle Cloud in Section 3.3, step 9. The *private* half stays on your machine forever — if you ever share it, regenerate the pair immediately.
+
+> **If you already have `~/.ssh/id_ed25519` on Mac, or `%USERPROFILE%\.ssh\id_ed25519` on Windows**, skip to Section 2. The client-bootstrap in Section 4 will detect your existing key and leave it alone. Print the public half now so you have it ready for Section 3.3:
+> - Mac: `cat ~/.ssh/id_ed25519.pub`
+> - Windows 11: `Get-Content "$env:USERPROFILE\.ssh\id_ed25519.pub"`
+
+Otherwise, generate one now. The commands below are idempotent (safe to run even if you'd already done it partway).
+
+### Mac (Apple Silicon) — Terminal
+
+Open **Terminal** (Applications → Utilities → Terminal, or Spotlight → "Terminal"):
+
+```bash
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N "" -C "$(whoami)@$(hostname -s)-$(date +%Y%m%d)"
+cat ~/.ssh/id_ed25519.pub
+```
+
+### Windows 11 — PowerShell (any window, no admin needed)
+
+Open **Windows Terminal** (Start menu → type "Terminal") or **PowerShell**:
+
+```powershell
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.ssh" | Out-Null
+ssh-keygen -t ed25519 -f "$env:USERPROFILE\.ssh\id_ed25519" -N '""' -C "$env:USERNAME@$env:COMPUTERNAME-$(Get-Date -Format 'yyyyMMdd')"
+Get-Content "$env:USERPROFILE\.ssh\id_ed25519.pub"
+```
+
+### What you should see
+
+The last command (the one that prints the public key) shows a single line starting with `ssh-ed25519 AAAAC3...` and ending with your user/hostname comment. **That whole line** is your public key. Copy it — you'll paste it into Oracle Cloud in Section 3.3, step 9.
+
+Don't worry about copying the terminal prompt or the filename or anything else around the line. Just the `ssh-ed25519 ... @...` part.
+
+### Security note
+
+- **Never share the private key** (the file with no `.pub` extension). If you accidentally share it or commit it somewhere public, generate a new pair right away and update Oracle Cloud.
+- The `-N ""` flag in the command above creates the key with no passphrase. This is fine for a single-user personal server behind Tailscale. For shared or higher-stakes setups, omit `-N ""` and ssh-keygen will prompt you for a passphrase.
 
 ---
 
@@ -191,7 +237,8 @@ Verify: the VCN is listed with status **Available** and shows **2 subnets** (one
    - Confirm **"Assign a public IPv4 address"** is **checked**. (If it's greyed out, you skipped Section 3.2 — back up and create the VCN first.)
 9. **SSH keys:**
    - Select **Paste public keys**.
-   - Paste the line that starts with `ssh-ed25519 …` — from the client-bootstrap step in Section 4 (**§4.1 step 4** on Mac, **§4.2 step 5** on Windows 11). The script showed it on screen and saved it to `~/.ssh/id_ed25519.pub` (Mac) or `%USERPROFILE%\.ssh\id_ed25519.pub` (Windows).
+   - Paste the line that starts with `ssh-ed25519 …` — from Section **§1.5** (if you haven't printed it recently, re-run `cat ~/.ssh/id_ed25519.pub` on Mac or `Get-Content "$env:USERPROFILE\.ssh\id_ed25519.pub"` on Windows).
+   - If you skipped §1.5 and haven't generated a key yet, stop here and go back — the bootstrap in Section 4 also generates a key, but once the VM is created without one (or with the wrong one) you're locked out and must recover via the OCI serial console (Appendix B).
    - **If you skipped ahead:** leave this tab open and run Section 4 now; come back with the key.
 10. **Boot volume:** size per the table in Step 6 (50 / 100 / 200 GB). **Boot volume VPUs: 120** regardless of size — that's the speed tier, and it's still free.
 11. Click **Create**. Wait 2–3 minutes for **Running** state.

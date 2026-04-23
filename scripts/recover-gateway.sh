@@ -8,14 +8,17 @@
 # Auto-detects sysuser mode (openclaw) vs default mode (ubuntu).
 #
 # Usage: recover-gateway.sh <ssh-alias>
-#   e.g. recover-gateway.sh openclaw-starrk
+#   e.g. recover-gateway.sh my-oraclaw
 #
 # Pattern: scp-then-execute. No heredocs fed over ssh (that pattern caused
-# sudo-TTY state corruption; see 2026-04-22 incident).
+# sudo-TTY state corruption; see docs/RECOVERY.md).
+#
+# Health probing is done via SSH against localhost on the VM — the gateway
+# always binds 127.0.0.1:18789 regardless of your tailnet name. No assumption
+# about your tailnet FQDN in this script.
 
 set -euo pipefail
 NODE="${1:?usage: $0 <ssh-alias>}"
-FQDN="${NODE}.tailf6d1da.ts.net"
 
 if ssh -o BatchMode=yes -o ConnectTimeout=5 "$NODE" 'test -d /home/openclaw' 2>/dev/null; then
   OC_USER=openclaw
@@ -26,8 +29,9 @@ else
 fi
 echo "[recover] target: $NODE  user: $OC_USER"
 
+# Probe /health via SSH to the VM, hitting localhost:18789 on the VM.
 probe() {
-  curl -sS -m 5 -o /dev/null -w '%{http_code}' "https://$FQDN/health" 2>/dev/null || echo 000
+  ssh -o ConnectTimeout=3 "$NODE" "curl -sS -m 3 -o /dev/null -w '%{http_code}' http://127.0.0.1:18789/health 2>/dev/null || echo 000" 2>/dev/null || echo 000
 }
 
 pre=$(probe)
@@ -85,6 +89,6 @@ Escalation steps:
        ssh $NODE 'OC_UID=\$(id -u $OC_USER); sudo -H -u $OC_USER env XDG_RUNTIME_DIR=/run/user/\$OC_UID systemctl --user status openclaw-gateway --no-pager -l'
 
   3) If SSH itself is unreachable, break-glass via the OCI serial console
-     (see docs/FIELD-MANUAL.md → "Break-glass: OCI serial console").
+     (see docs/FIELD-MANUAL.md → "Emergency Recovery").
 ESC_EOF
 exit 1
