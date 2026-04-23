@@ -67,10 +67,11 @@ OpenClaw is an AI "agentic harness" — think of it like Cursor or Claude Code, 
 - A **real phone number** that can receive SMS (for Oracle verification)
 - A **credit card** (Oracle verifies it but won't charge you as long as you stay in the Always Free tier)
 - An **OpenRouter account + API key**. Sign up at [openrouter.ai](https://openrouter.ai). The free tier via API is capped at **50 calls/day** — fine for trying it, tight for daily use. A one-time **$10 top-up** raises the free-model cap to **1000 calls/day** and is **strongly recommended on day one** — you are already adding a credit card to Oracle, and OpenRouter will not charge you per call on free models. The $10 sits on your account until you actually burn it (which could take years on free models).
-- A **Tailscale account** (free personal tier) at [tailscale.com](https://tailscale.com). **You do NOT need to install Tailscale itself yet.** By the end of setup, Tailscale will live in **two places under your single account**:
-  - On your **client machine** (Mac or Windows 11 PC) — as a menu-bar app with a GUI. The client bootstrap in Section 4 installs this for you.
-  - On the **Oracle Cloud VM** — as a background service (`tailscaled`). The installer in Section 6 sets this up for you.
+- A **Tailscale account** (free personal tier) at [tailscale.com](https://tailscale.com). **While you're there making the account, go ahead and download the Tailscale app for your client machine (Mac or Windows 11 PC).** The download link is right there on the signup / download page — takes 30 seconds. Doing it now saves time later; the bootstrap script in Section 4 handles installation fallback if you didn't. By the end of setup Tailscale lives in **two places under your single account**:
+  - On your **client machine** (Mac or Windows 11 PC) — a menu-bar/tray app with a GUI. Install now (via tailscale.com while you're there) OR let the Section 4 bootstrap install it via Homebrew / winget.
+  - On the **Oracle Cloud VM** — a background service (`tailscaled`). **You do NOT install this yourself.** The `install-oraclaw.sh` installer runs it on the VM in Section 6 for you.
   - Both show up on the same tailnet, so your client can SSH + reach the dashboard on the VM even though the VM has no public HTTPS port open.
+  - Background reading, optional: [OpenClaw's Tailscale integration docs](https://docs.openclaw.ai/gateway/tailscale) + [Tailscale's blog post on OpenClaw + Tailscale](https://tailscale.com/blog/openclaw-tailscale-aperture-serve) (the blog also discusses Aperture — that's a separate Tailscale AI-gateway product this kit does **not** use; ignore the Aperture sections and read the `tailscale serve` parts).
 - A **GitHub account** (free) at [github.com](https://github.com). You'll use this to clone this repo onto your client machine.
 
 **You don't need:**
@@ -128,11 +129,27 @@ git clone https://github.com/TomCruiseTorpedo/oraclaw.git $env:USERPROFILE\oracl
 & $env:USERPROFILE\oraclaw\scripts\generate-ssh-key.ps1
 ```
 
-### What you should see
+### What you should see — and what to copy
 
-The script prints a big green block with a line starting `ssh-ed25519 AAAAC3...` and ending with your user/hostname comment. **That whole line** is your public key. Copy it — you'll paste it into Oracle Cloud in Section 3.3, step 9.
+The script prints a big green block with one long line. **That whole line** is your public SSH key, and it has **three parts — all of which you need to copy together**:
 
-Don't worry about copying the terminal prompt or the filename or anything else around the line. Just the `ssh-ed25519 ... @...` part.
+```
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...long-base64-stuff...xEiKz7 user@computer-20260422
+└─ part 1 ─┘└─────────── part 2 ────────────────────┘ └──────── part 3 ─────────┘
+ algorithm       the actual key material (base64)       your label/comment
+```
+
+| Part | What it is | Looks like |
+|---|---|---|
+| 1. Algorithm | Always `ssh-ed25519` for the kind of key this kit uses | `ssh-ed25519` |
+| 2. Key material | A long base64 string — roughly 68 characters | `AAAAC3NzaC1...xEiKz7` |
+| 3. Comment | A label added by the generator so you can recognize this key later | `yourname@Your-Macs-Name-20260422` |
+
+**Copy ALL three parts as one single line.** If you only copy the middle part (the base64 goo), Oracle Cloud will reject the key without telling you why. The comment at the end — the "email-looking thing" — is **not decoration**; it's part of the key identity and must be included.
+
+Triple-clicking the line in most terminals (Terminal.app, iTerm2, Windows Terminal) selects the entire line. Do that, Cmd+C / Ctrl+C, paste into Oracle Cloud Section 3.3 step 9.
+
+> **Sanity check:** after you paste into the Oracle Cloud "Paste public keys" text box, the box should show a single line that starts with `ssh-ed25519 ` and ends with `-YYYYMMDD` (today's date). If what you pasted doesn't start and end that way, you missed one end of the line — go back and triple-click again.
 
 > **Security:** don't share the private key file (the one at `~/.ssh/id_ed25519` without the `.pub`). If it leaks, delete it and re-run the script — it'll generate a fresh pair.
 

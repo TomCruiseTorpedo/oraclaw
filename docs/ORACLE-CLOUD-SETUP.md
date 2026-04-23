@@ -10,7 +10,7 @@
 - A **real credit card** you're willing to give Oracle for verification (you won't be charged if you stay in Always Free tier — and this guide keeps you there).
 - A **real phone number** that can receive SMS (Oracle verifies it).
 - A **GitHub account** — sign up free at [github.com](https://github.com). You'll need this later for cloning the repo.
-- A **Tailscale account** — sign up free at [tailscale.com](https://tailscale.com). You can make it right now; you do NOT need to install Tailscale yet (the bootstrap script does that for you later).
+- A **Tailscale account** — sign up free at [tailscale.com](https://tailscale.com). **While you're on the Tailscale site, also download the Tailscale app for your Mac or Windows 11 PC** — the download button is right there. Takes 30 seconds, saves time later. Do NOT try to install Tailscale on the Oracle Cloud VM yourself; the `install-oraclaw.sh` installer does that for you later. (Background reading: [OpenClaw's Tailscale docs](https://docs.openclaw.ai/gateway/tailscale) + [Tailscale's blog on the integration](https://tailscale.com/blog/openclaw-tailscale-aperture-serve). The blog also mentions Aperture — that's a separate Tailscale AI-gateway product **not** used by this kit; skip the Aperture sections.)
 - (Recommended, $10 one-time) An **OpenRouter account** with a $10 top-up — sign up at [openrouter.ai](https://openrouter.ai). The $10 raises your daily call cap from 50 to 1000 on free models. Your card doesn't get charged per call; the $10 just unlocks the higher limit.
 
 Estimated time: **1 hour** from account creation to a running VM. Most of it waiting on Oracle provisioning and the PAYG upgrade.
@@ -83,7 +83,7 @@ The script below creates an SSH keypair and prints the public half. Zero depende
    bash ~/oraclaw/scripts/generate-ssh-key.sh
    ```
 
-4. It prints a big green line starting with `ssh-ed25519`. **That whole line is your public key.** Keep this terminal window open — you'll paste this line into Oracle Cloud in the next step.
+4. It prints a big green line starting with `ssh-ed25519`. **That whole line is your public key.** See the "three parts" note below before copying.
 
 ### Windows 11
 
@@ -108,7 +108,29 @@ The script below creates an SSH keypair and prints the public half. Zero depende
    & $env:USERPROFILE\oraclaw\scripts\generate-ssh-key.ps1
    ```
 
-4. It prints a big green line starting with `ssh-ed25519`. **That whole line is your public key.** Keep this PowerShell window open — you'll paste this line into Oracle Cloud in the next step.
+4. It prints a big green line starting with `ssh-ed25519`. **That whole line is your public key.** See the "three parts" note below before copying.
+
+### The three parts of your public key — copy ALL of them
+
+The green line the script prints looks like this:
+
+```
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...long-base64-stuff...xEiKz7 yourname@your-computer-20260422
+└─ part 1 ─┘└─────────── part 2 ────────────────────┘ └───────────── part 3 ─────────────┘
+ algorithm       the actual key material (base64)              your label/comment
+```
+
+| Part | What it is |
+|---|---|
+| 1. Algorithm | `ssh-ed25519` |
+| 2. Key material | ~68 characters of base64 (`AAAAC3...xEiKz7`) |
+| 3. Comment | Your label, e.g. `yourname@your-computer-20260422` |
+
+**Copy ALL three parts as a single line.** If you only grab the middle (the long base64 goo), Oracle Cloud will reject the key silently. The comment at the end — the email-looking thing — is **not** decoration; it's part of the key identity and must be included.
+
+The easy way: **triple-click** the line in the terminal → Cmd+C / Ctrl+C. Most terminals (Terminal.app, iTerm2, Windows Terminal) interpret triple-click as "select the whole line". Then paste into Oracle Cloud.
+
+**Sanity check after pasting:** Oracle Cloud's "Paste public keys" box should now show one line starting with `ssh-ed25519 ` and ending with today's date (`-20260422` or similar). If either end looks wrong, you missed part of the line — go back and triple-click more deliberately.
 
 > **If you'd really rather not touch a terminal**, Oracle Cloud's VM creation page can also generate a keypair for you and download both halves as files. If you want to go that route, skip ahead to Step 6, pick **"Generate a key pair for me"** when you reach the SSH keys section, and save the downloaded `.key` file somewhere you can find it. Your client setup later (the bootstrap script) will need that file to SSH in. Ask your helper (or your AI assistant) to show you where to put it.
 
@@ -186,7 +208,7 @@ You can start this as soon as PAYG is active **and** you've done Steps 4 + 5 abo
 8. **Boot volume:** 47 GB default is fine. Bump to 100 GB if you want headroom (up to 200 GB shared across all free-tier instances).
 9. **SSH keys:**
    - Select **Paste public keys**.
-   - Paste the green line from Step 3 (starts with `ssh-ed25519`).
+   - Paste the line from Step 3. Confirm it starts with `ssh-ed25519 ` and ends with your user/date comment (the "three parts" rule from Step 3 — if your paste is missing the algorithm name or the comment, Oracle will silently reject it).
    - **If you went the "let Oracle generate a key pair" route** instead: pick that option here, and make sure you click **Save private key** AND **Save public key** — you'll need both files.
 
 10. Click **Create**.

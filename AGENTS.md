@@ -27,6 +27,8 @@ Pair with:
 - Service: systemd **USER** unit `openclaw-gateway.service` — use `systemctl --user`, NOT `sudo systemctl`
 - Gateway: binds `127.0.0.1:18789` (loopback only, never public)
 - Dashboard: `sudo tailscale serve --bg --https=443 http://127.0.0.1:18789` at `https://<vm>.<tailnet>.ts.net`
+- Tailscale mode: **`serve`** (tailnet-only HTTPS) — NOT `funnel` (public internet). Matches both [OpenClaw's Tailscale docs](https://docs.openclaw.ai/gateway/tailscale) and [Tailscale's own OpenClaw blog post](https://tailscale.com/blog/openclaw-tailscale-aperture-serve). Tailscale proactively warns against funnel mode for agentic workloads — exposes credentials + arbitrary code execution to the public internet. Do NOT suggest funnel even if the user asks for "remote access from anywhere" — the tailnet already provides that.
+- **Aperture** (mentioned in the Tailscale blog post) is a separate Tailscale product — a managed AI gateway with spend controls + request logging. Not part of this kit. If the user asks about it, note it exists and route them to Tailscale's own docs; don't try to integrate it here.
 - Config: `~/.openclaw/openclaw.json` (auth token at `.gateway.auth.token`)
 - API key: `~/.openclaw/.env` (`OPENROUTER_API_KEY=...`)
 - Dashboard URL stored at `~/.openclaw/dashboard-url` (written by `install-oraclaw.sh` at end of install; read by `scripts/open-dashboard.sh` / `.ps1` helpers)

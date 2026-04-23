@@ -44,18 +44,33 @@ if (Test-Path $sshKey) {
 
 Write-Host ''
 Write-Host '+------------------------------------------------------------------+' -ForegroundColor White
-Write-Host '|  YOUR PUBLIC SSH KEY - copy this whole green line                |' -ForegroundColor White
+Write-Host '|  YOUR PUBLIC SSH KEY - copy the ENTIRE line in green below       |' -ForegroundColor White
+Write-Host '|  All THREE parts together: algorithm, key material, AND comment. |' -ForegroundColor White
 Write-Host '+------------------------------------------------------------------+' -ForegroundColor White
 Write-Host ''
 Write-Host (Get-Content "$sshKey.pub") -ForegroundColor Green
 Write-Host ''
+Write-Host 'The line above has three parts - all required:'
+Write-Host ''
+Write-Host "   ssh-ed25519        AAAAC3... (long base64 string)        $env:USERNAME@$env:COMPUTERNAME-..."
+Write-Host "   ^^^^^^^^^^^        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^^^^^"
+Write-Host "   PART 1:            PART 2:                               PART 3:"
+Write-Host "   algorithm name     the actual key (long, don't shorten)  your label/comment"
+Write-Host ''
+Write-Host 'Copy ALL three parts as one single line.' -ForegroundColor Yellow
+Write-Host 'Oracle Cloud rejects the key if any part is missing - including the comment'
+Write-Host "at the end. The comment isn't decoration, it's part of the key identity."
+Write-Host ''
 Write-Host 'What to do next:'
-Write-Host "  1. Triple-click the green line above to select it, then Ctrl+C to copy."
-Write-Host "  2. In Oracle Cloud's 'Create Compute Instance' page, scroll to the"
+Write-Host "  1. Triple-click the green line above to select the whole thing, then Ctrl+C."
+Write-Host "     (Triple-click selects the entire line by default in Windows Terminal.)"
+Write-Host "  2. Optional but safer: scroll back up and compare what you copied to the"
+Write-Host "     green line - the comment (your user@computer-date) should be included."
+Write-Host "  3. In Oracle Cloud's 'Create Compute Instance' page, scroll to the"
 Write-Host "     'Add SSH keys' section."
-Write-Host "  3. Select 'Paste public keys' and paste (Ctrl+V) there."
-Write-Host "  4. Finish creating the VM."
-Write-Host "  5. Come back here and continue to Section 4 of the Field Manual."
+Write-Host "  4. Select 'Paste public keys' and paste (Ctrl+V) there."
+Write-Host "  5. Finish creating the VM."
+Write-Host "  6. Come back here and continue to Section 4 of the Field Manual."
 Write-Host ''
 Write-Host "KEEP the *private* key safe (the file at $sshKey - no .pub)." -ForegroundColor Yellow
 Write-Host 'Never share it. If it leaks, delete it and re-run this script.' -ForegroundColor Yellow
