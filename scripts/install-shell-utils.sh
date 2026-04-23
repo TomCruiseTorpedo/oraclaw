@@ -40,10 +40,16 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q \
     sysstat iotop btop ncdu \
     pandoc fd-find curl ca-certificates
 
-# Ubuntu ships fd as "fdfind" and bat as "batcat" — wire short names.
-mkdir -p "$HOME/.local/bin"
-[ -x /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/.local/bin/fd" || true
-[ -x /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/.local/bin/bat" || true
+# Ubuntu ships fd as "fdfind" and bat as "batcat" — wire canonical names
+# into /usr/local/bin (matches install-openclaw-oci.sh so PATH lookups
+# resolve without extra profile plumbing).
+for pair in "fdfind fd" "batcat bat"; do
+    src=$(echo "$pair" | awk '{print $1}')
+    dst=$(echo "$pair" | awk '{print $2}')
+    if command -v "$src" >/dev/null && ! command -v "$dst" >/dev/null; then
+        sudo ln -sf "$(command -v "$src")" "/usr/local/bin/$dst"
+    fi
+done
 
 # GitHub CLI via official apt repo (not in Ubuntu 24.04 stock repos).
 if ! command -v gh >/dev/null 2>&1; then
