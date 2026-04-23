@@ -144,12 +144,16 @@ git clone https://github.com/TomCruiseTorpedo/oraclaw.git $env:USERPROFILE\oracl
 
 ### What you should see — and what to copy
 
-The script prints a big green block with one long line. **That whole line** is your public SSH key. It has **two required parts** and **one optional label**:
+The script prints a big green block with one long line. **That whole line** is your public SSH key. It's made of up to three space-separated parts, in this order:
 
 ```
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...long-base64-stuff...xEiKz7 your-label-here
-└─ part 1 ─┘└─────────── part 2 ────────────────────┘ └─ part 3 (optional) ─┘
- algorithm       the actual key material (base64)         label / comment
+<algorithm>  <key material (base64)>  <optional label>
+```
+
+A real example:
+
+```
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...long-base64-stuff...xEiKz7 you@example.com
 ```
 
 | Part | What it is | Required? |

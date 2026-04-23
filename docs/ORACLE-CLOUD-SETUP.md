@@ -118,12 +118,16 @@ The script below creates an SSH keypair and prints the public half. Zero depende
 
 ### The shape of your public key — copy the whole line
 
-The green line the script prints looks like this:
+The green line is made of up to three space-separated parts, in this order:
 
 ```
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...long-base64-stuff...xEiKz7 your-label-here
-└─ part 1 ─┘└─────────── part 2 ────────────────────┘ └─ part 3 (optional) ─┘
- algorithm       the actual key material (base64)         label / comment
+<algorithm>  <key material (base64)>  <optional label>
+```
+
+A real example:
+
+```
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...long-base64-stuff...xEiKz7 you@example.com
 ```
 
 | Part | What it is | Required? |
