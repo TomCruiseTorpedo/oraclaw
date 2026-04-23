@@ -6,43 +6,50 @@ No hosting fees.  No public-facing endpoint.  No domain name to buy.  No DNS to 
 
 ---
 
-## What is this?
+## Pre-flight checklist
 
-Oraclaw is a ready-to-use install kit for putting [OpenClaw](https://openclaw.ai) — a headless AI agent — onto an Oracle Cloud "Always Free" Ampere A1 VM, behind [Tailscale](https://tailscale.com) so only your own devices can reach it.
+Please confirm all five of these before you start, no matter which path you pick below. Most setup pain we've seen is because one of these was skipped. They're free and take 15 minutes combined.
 
-You get a browser dashboard you can open from any of your devices, and the agent runs 24/7 — ready when you have a question, or checking in on its own schedule to keep working on whatever you've asked it to track.
+- [ ] **Oracle Cloud account** — create at [oracle.com/cloud/free](https://www.oracle.com/cloud/free/), then **immediately upgrade to Pay-As-You-Go**. Upgrade approval can take up to 8 hours; **start it first thing in the morning**. You will NOT be charged — PAYG just tells Oracle to prioritize your VM creation. See [docs/ORACLE-CLOUD-SETUP.md § Step 2](docs/ORACLE-CLOUD-SETUP.md#step-2--upgrade-to-pay-as-you-go-payg).
+- [ ] **Tailscale account** — sign up free at [tailscale.com](https://tailscale.com). **You do NOT need to install Tailscale yet** — the client bootstrap script does that for you.
+- [ ] **OpenRouter account + $10 top-up** — sign up at [openrouter.ai](https://openrouter.ai). The $10 raises your daily cap from 50 to 1000 calls on free models. Your card isn't charged per call.
+- [ ] **GitHub account** — free at [github.com](https://github.com). Needed to clone this repo onto your client machine.
+- [ ] **A Mac (Apple Silicon) or Windows 11 PC.** Intel Macs aren't supported. Linux clients work fine but aren't officially documented — open an issue if you want that path.
 
-## Who is this for?
-
-- Curious people who want their own agentic AI running in the cloud without paying for hosting
-- Non-technical users who can copy and paste commands and follow a step-by-step guide — this kit is designed for first-time users and assumes nothing about your technical background
-- You're on an **Apple Silicon Mac** (M1 / M2 / M3 / M4 / M5) or a **Windows 11 PC**
-
-## What you'll need before starting
-
-- **Oracle Cloud account** (free tier — gets upgraded to Pay As You Go during setup, but you will not be charged as long as you stay inside the free-tier limits)
-- **Tailscale account** (free personal tier — you'll create it during client setup)
-- **OpenRouter API key** (free models are the default; a one-time **$10 top-up is strongly recommended** to raise your daily limit from 50 calls to 1000 calls)
-- About an hour of your time (most of it waiting on downloads and Oracle Cloud provisioning)
-- A **credit card** — for Oracle verification and the OpenRouter top-up.  Neither will charge you as long as you follow the guide.
-
-Full prerequisites list: [docs/FIELD-MANUAL.md § 1](docs/FIELD-MANUAL.md#1-what-you-need-before-starting).
+If any of the above aren't ready, stop and knock them out first.
 
 ---
 
-## The setup, at a glance
+## Pick your path
 
-The full setup has three phases.  **Start with the Field Manual — it walks you through every click.**  The one-liners below are convenience commands for the middle phase (preparing your client machine); they don't replace the Field Manual.
+Setup has two main flows depending on how much help you have. Both cover the same ground; they just start differently.
 
-### Phase 1 — Oracle Cloud account + free VM
+### 🧑‍🏫 Path A — With help (recommended)
 
-Follow **[docs/FIELD-MANUAL.md](docs/FIELD-MANUAL.md) Sections 1–3**.
+Choose this if someone is walking you through (in person, over screen-share, or via an AI coding assistant like GitHub Copilot, Cursor, Claude, or Antigravity).
 
-The single biggest thing to know: **upgrade your Oracle account to Pay As You Go on day one**.  It can take up to 8 hours to approve, and you can't reliably create an Always-Free VM without it.  Start this first thing in the morning; come back after lunch.
+1. Your helper walks you through [**docs/ORACLE-CLOUD-SETUP.md**](docs/ORACLE-CLOUD-SETUP.md) — a standalone walkthrough for account creation, PAYG upgrade, SSH key generation, and VM creation. ~1 hour, most of it waiting on Oracle.
+2. When your VM is running, your helper hands you off to [**docs/FIELD-MANUAL.md**](docs/FIELD-MANUAL.md) **Section 4** (client setup → connect → install Oraclaw → open dashboard). ~20 minutes.
+3. If you're using an AI assistant rather than a person, start by pasting the "Starting fresh" prompt from [**docs/HARNESS-PROMPTS.md**](docs/HARNESS-PROMPTS.md). The AI reads [AGENTS.md](AGENTS.md) for context and walks you through, one step at a time, waiting for your confirmation between steps.
+4. **If you've never used a terminal**, read [**docs/TERMINAL-BASICS.md**](docs/TERMINAL-BASICS.md) first — 5 minutes, demystifies the thing that scares most first-timers.
 
-### Phase 2 — Set up your client machine
+### 🚶 Path B — Solo, self-paced
 
-Once the VM is running, prepare your Mac or Windows 11 PC to talk to it.  Each script below is idempotent (safe to re-run), installs the tools you need, generates an SSH key, clones this repo to `~/oraclaw`, walks you through Tailscale login, and adds an SSH shortcut for your VM.
+Choose this if you're doing it alone with no helper.
+
+Read [**docs/FIELD-MANUAL.md**](docs/FIELD-MANUAL.md) start to finish. It's long but every step is copy-paste; no improvisation required. Budget 1.5–2 hours.
+
+Quick reference when you need it: [**docs/CHEATSHEET.md**](docs/CHEATSHEET.md).
+
+When something breaks: [**docs/WHEN-THINGS-GO-WRONG.md**](docs/WHEN-THINGS-GO-WRONG.md) has copy-paste prompts for common failures you can paste into any AI assistant.
+
+If you get stuck and the AI's advice doesn't help, [**docs/RECOVERY.md**](docs/RECOVERY.md) covers the most common broken state (dashboard breaks after clicking "Update").
+
+---
+
+## The bootstrap one-liners
+
+These go **after** you've created your Oracle Cloud VM (Path A Step 1 or Field Manual Section 3). They prepare your client machine.
 
 **Mac (Apple Silicon):**
 
@@ -57,13 +64,20 @@ Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 irm https://raw.githubusercontent.com/TomCruiseTorpedo/oraclaw/main/scripts/bootstrap-windows.ps1 | iex
 ```
 
-More detail on what these do: [docs/FIELD-MANUAL.md § 4](docs/FIELD-MANUAL.md#4-set-up-your-client-machine-one-command).
+Each script is **idempotent** (safe to re-run). It installs tools (git, Tailscale, jq, mosh/tmux on Mac), creates an SSH key if you don't have one, walks you through Tailscale login, and adds an SSH shortcut for your VM.
+
+**If you want to generate just the SSH key first** (before creating your VM in Oracle), use the tiny standalone script:
+
+- Mac: `bash ~/oraclaw/scripts/generate-ssh-key.sh`
+- Windows 11: `& $env:USERPROFILE\oraclaw\scripts\generate-ssh-key.ps1`
+
+More detail: [docs/FIELD-MANUAL.md § 4](docs/FIELD-MANUAL.md#4-set-up-your-client-machine-one-command).
 
 ### Phase 3 — Install Oraclaw on the VM
 
-Follow **[docs/FIELD-MANUAL.md § 6](docs/FIELD-MANUAL.md#6-install-oraclaw-on-the-vm-one-command)**.  It's one `scp` + one `ssh` command from your client that copies the installer script to the VM and runs it.  About 5–10 minutes of script output, then you're done.
+Follow **[docs/FIELD-MANUAL.md § 6](docs/FIELD-MANUAL.md#6-install-oraclaw-on-the-vm-one-command)**. One `scp` + one `ssh` command from your client copies the installer script to the VM and runs it. 5–10 minutes of output, then you're done.
 
-When it finishes, open the dashboard URL in your browser and paste the login token it printed.  That's the end of setup.
+When it finishes, open the dashboard URL in your browser and paste the login token it printed. That's the end of setup.
 
 ---
 
@@ -96,11 +110,14 @@ The full 1 / 2 / 4 sizing options are in [docs/FIELD-MANUAL.md § 3.3](docs/FIEL
 
 | File | What it's for |
 |---|---|
-| [docs/FIELD-MANUAL.md](docs/FIELD-MANUAL.md) | The full walkthrough — start here |
-| [docs/CHEATSHEET.md](docs/CHEATSHEET.md) | One-page reference for daily operations |
+| [docs/ORACLE-CLOUD-SETUP.md](docs/ORACLE-CLOUD-SETUP.md) | Standalone walkthrough for the Oracle Cloud phase — account → PAYG → SSH key → VM. Best for in-person or screen-share help. |
+| [docs/FIELD-MANUAL.md](docs/FIELD-MANUAL.md) | The full walkthrough from scratch to a working dashboard. Best for solo self-paced. |
+| [docs/CHEATSHEET.md](docs/CHEATSHEET.md) | One-page reference for daily operations after setup. |
+| [docs/TERMINAL-BASICS.md](docs/TERMINAL-BASICS.md) | If you've never used a terminal — 5-minute primer covering open, paste, Enter, what red text means. |
+| [docs/HARNESS-PROMPTS.md](docs/HARNESS-PROMPTS.md) | Copy-paste prompts for AI coding assistants. Lets the AI walk you through setup step-by-step. |
 | [docs/RECOVERY.md](docs/RECOVERY.md) | What to do if the dashboard breaks after you click "Update" |
 | [docs/MODELS.md](docs/MODELS.md) | How the model chain works + how to swap a model safely |
-| [docs/WHEN-THINGS-GO-WRONG.md](docs/WHEN-THINGS-GO-WRONG.md) | Copy-paste AI help prompts for common failures |
+| [docs/WHEN-THINGS-GO-WRONG.md](docs/WHEN-THINGS-GO-WRONG.md) | Copy-paste AI help prompts for common post-setup failures |
 | [AGENTS.md](AGENTS.md) | Context file auto-loaded by AI coding assistants (Cursor, Claude Code, Antigravity, etc.) so they don't have to be taught the stack each time |
 
 ---
@@ -113,21 +130,27 @@ oraclaw/
 ├── AGENTS.md                       ← AI-assistant context file
 ├── LICENSE                         ← Apache License 2.0
 ├── docs/
-│   ├── FIELD-MANUAL.md             ← full walkthrough
+│   ├── ORACLE-CLOUD-SETUP.md       ← standalone walkthrough for the OCI phase (best for guided flows)
+│   ├── FIELD-MANUAL.md             ← full walkthrough start to finish (best for self-paced)
 │   ├── CHEATSHEET.md               ← daily-ops reference
+│   ├── TERMINAL-BASICS.md          ← 5-min primer for first-time terminal users
+│   ├── HARNESS-PROMPTS.md          ← copy-paste prompts for AI coding assistants
 │   ├── RECOVERY.md                 ← dashboard-update-broke-my-Oraclaw walkthrough
 │   ├── MODELS.md                   ← primary / fallbacks / heartbeat roles + how to swap
-│   └── WHEN-THINGS-GO-WRONG.md     ← AI help prompts for common failures
+│   └── WHEN-THINGS-GO-WRONG.md     ← AI help prompts for post-setup failures
 └── scripts/
-    ├── bootstrap-mac.sh            ← Mac (Apple Silicon) client setup
-    ├── bootstrap-windows.ps1       ← Windows 11 client setup
+    ├── generate-ssh-key.sh         ← Mac: minimal SSH-key-only helper (for the OCI step)
+    ├── generate-ssh-key.ps1        ← Windows 11: same
+    ├── bootstrap-mac.sh            ← Mac (Apple Silicon) full client setup
+    ├── bootstrap-windows.ps1       ← Windows 11 full client setup
     ├── install-oraclaw.sh          ← VM installer (runs on the Oracle Cloud VM)
     ├── open-dashboard.sh           ← Mac: open dashboard + copy token to clipboard
-    ├── open-dashboard.ps1          ← Windows: same
+    ├── open-dashboard.ps1          ← Windows 11: same
     ├── approve-pairing.sh          ← Mac: one-command "approve this browser"
-    ├── approve-pairing.ps1         ← Windows: same
-    ├── recover-gateway.sh          ← one-shot "bring my dashboard back" command
-    └── rotate-gateway-token.sh     ← rotate the gateway auth token
+    ├── approve-pairing.ps1         ← Windows 11: same
+    ├── recover-gateway.sh          ← Mac: one-shot "bring my dashboard back" command
+    ├── recover-gateway.ps1         ← Windows 11: same
+    └── rotate-gateway-token.sh     ← rotate the gateway auth token (runs on the VM; no .ps1 needed)
 ```
 
 ---

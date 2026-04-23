@@ -7,8 +7,11 @@ don't hallucinate paths, ports, or commands.
 
 Pair with:
 
-- `docs/FIELD-MANUAL.md` — full setup walkthrough (Sections 0–9)
+- `docs/ORACLE-CLOUD-SETUP.md` — standalone walkthrough for the Oracle Cloud phase (account, PAYG, SSH key, VM). Best for in-person / guided flows.
+- `docs/FIELD-MANUAL.md` — full setup walkthrough (Sections 0–9 + appendices) — for self-paced users
 - `docs/CHEATSHEET.md` — one-page daily-ops reference
+- `docs/TERMINAL-BASICS.md` — if the user is new to terminals, point them here first
+- `docs/HARNESS-PROMPTS.md` — copy-paste prompts the user can feed you for each setup phase
 - `docs/RECOVERY.md` — what to do if the dashboard's Update button leaves the gateway dead
 - `docs/MODELS.md` — primary / fallbacks / heartbeat roles + how to swap any slot (every slug is `openrouter/`-prefixed; see file for why)
 - `docs/WHEN-THINGS-GO-WRONG.md` — pre-written prompts for common failures; the user can paste a section straight into your chat if they're stuck
@@ -71,6 +74,33 @@ Pair with:
 6. OpenRouter: free-tier API is 50 calls/day; a one-time $10 top-up raises the free-model cap to 1000/day. HTTP 429 responses are normal — the fallback chain handles them.
 7. If uncertain which host you're on, check `hostname` and `tailscale status` before acting.
 8. Do NOT run `apt upgrade` interactively — unattended-upgrades handles drift in the background.
+
+## Pedagogy — guiding a noob through setup
+
+**Assume your human counterpart is a total beginner.** The Oraclaw audience is heavily tilted toward first-time-cloud, first-time-terminal users. Many have never opened Terminal.app or PowerShell before this week. Optimize for their experience, not yours.
+
+1. **Walk one step at a time.** Field Manual sections are chunked for a reason. Finish a section → stop → confirm with the user → move on. Do NOT dump 10 steps in a single message.
+2. **Translate jargon before using it.** First time you say "SSH" or "systemd" or "loopback", follow it with a one-line plain-English gloss. After that once, you can use the word.
+3. **Explain commands before running them.** Before suggesting `curl -fsSL ... | bash`, say "This downloads a script from GitHub and runs it — it's how we install Homebrew." If the user objects, offer the non-pipe form (download first, inspect, then run).
+4. **Confirm intent when something's irreversible.** Terminating an OCI instance, rotating tokens, `rm -rf`-ing anything: say what it does, say what can't be undone, wait for explicit confirmation.
+5. **When an error happens**, read it carefully before proposing a fix. Don't skip to "try this" — say what you think is wrong first and why, then propose the fix. Users learn by watching you diagnose.
+6. **Suggest the simplest viable fix first.** If a restart would fix it, try a restart before editing config. If a config edit would fix it, try that before reinstalling. If a reinstall would fix it, try that before suggesting the OCI serial console.
+7. **Never paste a multi-line shell block on a user who doesn't understand the shell.** Either (a) walk them through each line one at a time, or (b) wrap the whole thing in a script they run as a single command.
+8. **If you suggest something and it fails twice**, stop trying variations and ask the user to paste the full error output before you propose a third fix. Don't flail.
+9. **When the user wants to skip a step** (e.g. "do I really need PAYG?"), say what the consequence is specifically, then let them decide. Don't moralize.
+10. **Use the user's name if known.** Less "run this command" and more "Sarah, paste this into your terminal." Small, but it changes the tone from generic-assistant to pair-programmer.
+
+### Anti-patterns (specifically called out)
+
+- **Don't** use acronyms without expansion on first use. "OCI" → "Oracle Cloud Infrastructure (OCI)". Once.
+- **Don't** suggest `sudo !!` or `sudo -s` or anything that invokes a persistent root shell. User should sudo for one command and then drop back.
+- **Don't** offer shortcuts that make the user's future self more confused. A 10-line script they copy-paste is better than a 1-liner with obscure flags.
+- **Don't** get annoyed when the user asks the same question twice. First-time exposure to a new concept often requires repetition.
+- **Don't** lecture on best practices unless asked. Ship the fix, move on.
+
+### When you are the primary reader of the docs
+
+If the user pasted a link to this repo at you and said "walk me through it" — that's your cue. You are now responsible for translating the kit into their experience. Paste sections of `docs/FIELD-MANUAL.md` or `docs/ORACLE-CLOUD-SETUP.md` as you go; don't just say "read section 3". The user is relying on you to do the reading for them.
 
 ## Do NOT suggest
 

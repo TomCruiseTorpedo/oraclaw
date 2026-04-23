@@ -67,11 +67,12 @@ OpenClaw is an AI "agentic harness" — think of it like Cursor or Claude Code, 
 - A **real phone number** that can receive SMS (for Oracle verification)
 - A **credit card** (Oracle verifies it but won't charge you as long as you stay in the Always Free tier)
 - An **OpenRouter account + API key**. Sign up at [openrouter.ai](https://openrouter.ai). The free tier via API is capped at **50 calls/day** — fine for trying it, tight for daily use. A one-time **$10 top-up** raises the free-model cap to **1000 calls/day** and is **strongly recommended on day one** — you are already adding a credit card to Oracle, and OpenRouter will not charge you per call on free models. The $10 sits on your account until you actually burn it (which could take years on free models).
-- A **Tailscale account** (free personal tier) at [tailscale.com](https://tailscale.com) — you'll create this during Section 4 when the bootstrap prompts you to log in.
+- A **Tailscale account** (free personal tier) at [tailscale.com](https://tailscale.com). **You do NOT need to install Tailscale itself yet** — the client bootstrap script in Section 4 installs and configures it for you. Just the account is fine for now.
+- A **GitHub account** (free) at [github.com](https://github.com). You'll use this to clone this repo onto your client machine.
 
 **You don't need:**
 
-- Prior command-line experience. This guide assumes zero.
+- Prior command-line experience. This guide assumes zero. If the idea of opening a terminal feels intimidating, read **[docs/TERMINAL-BASICS.md](TERMINAL-BASICS.md)** first — 5 minutes, demystifies the scariest parts.
 - A static IP or a domain name. Tailscale handles that.
 
 **A helpful extra:** an AI coding assistant you can ask questions when you get stuck. Any of these free tiers work well:
@@ -80,47 +81,59 @@ OpenClaw is an AI "agentic harness" — think of it like Cursor or Claude Code, 
 - **Cursor free tier** — tighter usage limits, stronger models (Composer 1.5)
 - **Antigravity free tier** — tighter limits, strongest models (Gemini 3.1 Pro, Claude Sonnet 4.6)
 
-Copy a section of `docs/WHEN-THINGS-GO-WRONG.md` into whichever you prefer when a symptom matches.
+**[docs/HARNESS-PROMPTS.md](HARNESS-PROMPTS.md)** has copy-pastable prompts you can feed to your AI assistant at each phase of setup — lets the AI walk you through step by step. For specific failures after setup, **[docs/WHEN-THINGS-GO-WRONG.md](WHEN-THINGS-GO-WRONG.md)** has symptom-matched prompts.
 
 ---
 
 ## 1.5 Generate your SSH key (2 minutes, no dependencies)
 
-You'll need an SSH key **before you create your VM** in Section 3. Oracle Cloud locks the SSH key onto the VM at creation time, and changing it afterward means using the OCI serial console — tedious. Getting the key ready first makes Section 3 a single uninterrupted pass.
+You'll need an SSH key **before you create your VM** in Section 3. Oracle Cloud locks the SSH key onto the VM at creation time, and changing it afterward means using the OCI serial console — tedious. Get the key ready first and Section 3 becomes a single uninterrupted pass.
 
 Your SSH key lives on your client machine (Mac or Windows 11 PC). The *public* half gets pasted into Oracle Cloud in Section 3.3, step 9. The *private* half stays on your machine forever — if you ever share it, regenerate the pair immediately.
 
-> **If you already have `~/.ssh/id_ed25519` on Mac, or `%USERPROFILE%\.ssh\id_ed25519` on Windows**, skip to Section 2. The client-bootstrap in Section 4 will detect your existing key and leave it alone. Print the public half now so you have it ready for Section 3.3:
-> - Mac: `cat ~/.ssh/id_ed25519.pub`
-> - Windows 11: `Get-Content "$env:USERPROFILE\.ssh\id_ed25519.pub"`
-
-Otherwise, generate one now. The commands below are idempotent (safe to run even if you'd already done it partway).
+**Easiest path:** clone this repo first, then run the tiny `generate-ssh-key` script. The script detects if you already have a key (leaves it alone) or creates a new one, and prints the public half in a big green block with clear instructions for where to paste it.
 
 ### Mac (Apple Silicon) — Terminal
 
-Open **Terminal** (Applications → Utilities → Terminal, or Spotlight → "Terminal"):
+Open **Terminal** (Spotlight → "Terminal" → Enter). First time? Read [docs/TERMINAL-BASICS.md](TERMINAL-BASICS.md) — 5-minute primer.
 
 ```bash
-mkdir -p ~/.ssh && chmod 700 ~/.ssh
-ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N "" -C "$(whoami)@$(hostname -s)-$(date +%Y%m%d)"
-cat ~/.ssh/id_ed25519.pub
+# Clone the repo (triggers the Xcode Command Line Tools install the first time)
+cd ~
+git clone https://github.com/TomCruiseTorpedo/oraclaw.git
+
+# Run the SSH-key generator
+bash ~/oraclaw/scripts/generate-ssh-key.sh
 ```
 
 ### Windows 11 — PowerShell (any window, no admin needed)
 
-Open **Windows Terminal** (Start menu → type "Terminal") or **PowerShell**:
+Open **Windows Terminal** (Start → type "Terminal") or **PowerShell**.
 
 ```powershell
-New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.ssh" | Out-Null
-ssh-keygen -t ed25519 -f "$env:USERPROFILE\.ssh\id_ed25519" -N '""' -C "$env:USERNAME@$env:COMPUTERNAME-$(Get-Date -Format 'yyyyMMdd')"
-Get-Content "$env:USERPROFILE\.ssh\id_ed25519.pub"
+# Allow scripts to run (one-time per user)
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+
+# Install git + clone the repo
+winget install --id Git.Git --exact --silent `
+               --accept-source-agreements --accept-package-agreements
+
+# Close and reopen PowerShell so git is on PATH, then:
+git clone https://github.com/TomCruiseTorpedo/oraclaw.git $env:USERPROFILE\oraclaw
+
+# Run the SSH-key generator
+& $env:USERPROFILE\oraclaw\scripts\generate-ssh-key.ps1
 ```
 
 ### What you should see
 
-The last command (the one that prints the public key) shows a single line starting with `ssh-ed25519 AAAAC3...` and ending with your user/hostname comment. **That whole line** is your public key. Copy it — you'll paste it into Oracle Cloud in Section 3.3, step 9.
+The script prints a big green block with a line starting `ssh-ed25519 AAAAC3...` and ending with your user/hostname comment. **That whole line** is your public key. Copy it — you'll paste it into Oracle Cloud in Section 3.3, step 9.
 
 Don't worry about copying the terminal prompt or the filename or anything else around the line. Just the `ssh-ed25519 ... @...` part.
+
+> **Security:** don't share the private key file (the one at `~/.ssh/id_ed25519` without the `.pub`). If it leaks, delete it and re-run the script — it'll generate a fresh pair.
+
+> **I'd really rather not touch a terminal at all**, can I let Oracle make the key for me? Yes — in Section 3.3 step 9 you can pick "Generate a key pair for me" and Oracle will download both halves as files. You'll need to move the downloaded private key into `~/.ssh/` with the right name + permissions before the client bootstrap works. Ask your helper or an AI assistant to walk you through that when the time comes.
 
 ### Security note
 
