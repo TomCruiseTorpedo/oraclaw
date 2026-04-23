@@ -8,12 +8,13 @@ No hosting fees.  No public-facing endpoint.  No domain name to buy.  No DNS to 
 
 ## Pre-flight checklist
 
-Please confirm all five of these before you start, no matter which path you pick below. Most setup pain we've seen is because one of these was skipped. They're free and take 15 minutes combined.
+Please confirm all six of these before you start, no matter which path you pick below. Most setup pain we've seen is because one of these was skipped. They're free and take ~20 minutes combined.
 
 - [ ] **Oracle Cloud account** — create at [oracle.com/cloud/free](https://www.oracle.com/cloud/free/), then **immediately upgrade to Pay-As-You-Go**. Upgrade approval can take up to 8 hours; **start it first thing in the morning**. You will NOT be charged — PAYG just tells Oracle to prioritize your VM creation. See [docs/ORACLE-CLOUD-SETUP.md § Step 2](docs/ORACLE-CLOUD-SETUP.md#step-2--upgrade-to-pay-as-you-go-payg).
 - [ ] **Tailscale account** — sign up free at [tailscale.com](https://tailscale.com). **You do NOT need to install Tailscale yet** — the client bootstrap script does that for you.
 - [ ] **OpenRouter account + $10 top-up** — sign up at [openrouter.ai](https://openrouter.ai). The $10 raises your daily cap from 50 to 1000 calls on free models. Your card isn't charged per call.
 - [ ] **GitHub account** — free at [github.com](https://github.com). Needed to clone this repo onto your client machine.
+- [ ] **SSH keypair generated BEFORE you create the VM.** Do this in your client's terminal using [docs/FIELD-MANUAL.md § 1.5](docs/FIELD-MANUAL.md#15-generate-your-ssh-key-2-minutes-no-dependencies) or [docs/ORACLE-CLOUD-SETUP.md § Step 3](docs/ORACLE-CLOUD-SETUP.md#step-3--generate-your-ssh-key-2-minutes). ⚠ **Whatever public key you paste into Oracle at VM-creation time is permanently bound to that instance** — Oracle won't let you change it after, and if you lose the matching private key your only fix is to destroy the VM and start over (and the Ampere A1 capacity queue can eat hours). Get the key ready FIRST, pick it deliberately in Section 3.3 Step 9.
 - [ ] **A Mac (Apple Silicon) or Windows 11 PC.** Intel Macs aren't supported. Linux clients work fine but aren't officially documented — open an issue if you want that path.
 
 If any of the above aren't ready, stop and knock them out first.
