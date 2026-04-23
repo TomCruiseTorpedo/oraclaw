@@ -257,9 +257,11 @@ Click **Next**.
 
 Scroll down, still on Networking:
 
+> **⚠ Critical — this key is permanently bound to this instance.** Whatever public key goes into this box is the **only** key that can SSH into your VM, forever. Oracle does not let you change it after the instance is created (not without the serial console, which is painful). **If you lose the matching private key, your only recovery is to terminate this instance and start over** — OCI's Ampere A1 capacity queue can take hours to give you another slot, so spend 10 seconds now making sure you have the right key.
+
 - Select **Paste public key**.
-- Paste your public key from Step 3 of this doc — all three parts, starts with `ssh-ed25519 `, ends with today's date.
-- **If you went the Oracle-generated keypair route**, pick **Generate a key pair for me** here instead, and click BOTH **Save private key** and **Save public key** — save both files where you can find them.
+- Paste your public key from Step 3 of this doc — all three parts, starts with `ssh-ed25519 `, ends with today's date. The matching private key lives on your client at `~/.ssh/id_ed25519` (Mac) or `%USERPROFILE%\.ssh\id_ed25519` (Windows); **don't delete or overwrite it**, ever.
+- **If you're going the Oracle-generated-keypair route** instead: pick **Generate a key pair for me**, then click BOTH **Save private key** AND **Save public key** before clicking Next. **Oracle will not let you re-download the private key later** — if you miss it, the instance is bricked and you start over. Move both files into `~/.ssh/` (Mac) or `%USERPROFILE%\.ssh\` (Windows) immediately, not Downloads/ (which your OS may clean out automatically).
 
 ### Wizard Step 4 — Storage
 
