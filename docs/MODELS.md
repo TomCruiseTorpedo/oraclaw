@@ -8,8 +8,8 @@ This page explains the three "roles" a model can play in your OpenClaw setup, wh
 
 Every agent job runs through one of three model slots:
 
-- **Primary** — the model your agent uses for real work: chat replies, tool calls, reasoning. This is the one you care about most. In this kit: `openrouter/inclusionai/ling-2.6-flash:free`.
-- **Fallbacks** — an ordered list tried in sequence if the primary fails (timeout, rate limit, model taken down, upstream auth error). The first one that answers wins. In this kit, the chain is: gemma → nemotron → minimax → glm → qwen.
+- **Primary** — the model your agent uses for real work: chat replies, tool calls, reasoning. This is the one you care about most. In this kit: `openrouter/nvidia/nemotron-3-super-120b-a12b:free`.
+- **Fallbacks** — an ordered list tried in sequence if the primary fails (timeout, rate limit, model taken down, upstream auth error). The first one that answers wins. In this kit, the chain is: gemma → minimax → glm → qwen.
 - **Heartbeat** — the model that runs the background cron heartbeat jobs (status checks every 5–60 minutes depending on time of day). These should be cheap and fast — they're not doing deep reasoning, just checking in. In this kit: `openrouter/meta-llama/llama-3.2-3b-instruct:free` (3B params — tiny, fast, tool-use capable).
 
 Configuration lives in `~/.openclaw/openclaw.json` under `agents.defaults`:
@@ -79,7 +79,7 @@ Adding a new fallback: drop its slug into the array *and* into `agents.defaults.
 
 **Example 1 — swap primary to nemotron, keep everything else:**
 
-Before: `"primary": "openrouter/inclusionai/ling-2.6-flash:free"`
+Before: `"primary": "openrouter/nvidia/nemotron-3-super-120b-a12b:free"`
 After: `"primary": "openrouter/nvidia/nemotron-3-super-120b-a12b:free"`
 
 Nemotron is already in `agents.defaults.models` (it's a fallback), so no registry edit needed. Just save and restart.
@@ -113,7 +113,7 @@ Add `openrouter/google/gemma-2-9b-it:free` as a key in `agents.defaults.models`.
 
 ## Best practices
 
-- **Pin specific slugs, not aliases.** `openrouter/free` is an alias that picks "whatever's free right now" and can silently swap models under you. Specific slugs (like `openrouter/inclusionai/ling-2.6-flash:free`) are stable and auditable.
+- **Pin specific slugs, not aliases.** `openrouter/free` is an alias that picks "whatever's free right now" and can silently swap models under you. Specific slugs (like `openrouter/nvidia/nemotron-3-super-120b-a12b:free`) are stable and auditable.
 
 - **Keep the fallback chain diverse.** If all your fallbacks are from the same provider family (e.g. all Gemma variants), an outage there takes down your whole chain. Spread across providers: Google, Meta, Alibaba, NVIDIA, etc.
 

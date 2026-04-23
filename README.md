@@ -92,7 +92,7 @@ When it finishes, open the dashboard URL in your browser and paste the login tok
 - Unattended security upgrades enabled
 - Swap auto-sized to ~2/3 of detected RAM (6 GB RAM → 4 GB swap; 12 GB → 8 GB; 24 GB → 16 GB)
 - 1 heartbeat cron job, every 6 hours, `isolatedSession: true` (keeps Main and Heartbeat chats separate)
-- Model allowlist: `openrouter/inclusionai/ling-2.6-flash:free` primary + 5 free fallbacks — every slug routes through your OpenRouter API key (no extra per-provider keys needed)
+- Model allowlist: `openrouter/nvidia/nemotron-3-super-120b-a12b:free` primary + 4 free fallbacks — every slug routes through your OpenRouter API key (no extra per-provider keys needed)
 - A dedicated tiny model for heartbeat check-ins (so the recurring background work is free and fast, even when your main model is bigger)
 - **Auto-recovery safety net:** if the gateway ever dies — including the one failure mode where clicking the dashboard's Update button leaves it stuck — `systemd` relaunches it within 10 seconds, and a background health-probe timer kicks it again 60 seconds later if it's still not responding.  See [docs/RECOVERY.md](docs/RECOVERY.md) for the manual escape hatch if you ever need it (most people never will).
 

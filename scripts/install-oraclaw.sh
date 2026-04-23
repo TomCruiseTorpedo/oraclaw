@@ -50,14 +50,13 @@ SWAP_GB="${SWAP_GB:-}"
 # key).  If you see "Unknown model: X" in the logs, a missing prefix is
 # almost always the cause.
 MODELS=(
-  "openrouter/inclusionai/ling-2.6-flash:free"
-  "openrouter/google/gemma-4-31b-it:free"
   "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
+  "openrouter/google/gemma-4-31b-it:free"
   "openrouter/minimax/minimax-m2.5:free"
   "openrouter/z-ai/glm-4.5-air:free"
   "openrouter/qwen/qwen3-coder:free"
 )
-PRIMARY_MODEL="openrouter/inclusionai/ling-2.6-flash:free"
+PRIMARY_MODEL="openrouter/nvidia/nemotron-3-super-120b-a12b:free"
 
 # Heartbeat uses a smaller, faster model than the main chain.  Heartbeats
 # fire far more often than user-initiated work; a 3B free model here vs.
@@ -128,7 +127,42 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
 sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -qq
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
   git curl wget ca-certificates gnupg jq unzip build-essential htop \
-  tmux mosh ufw fail2ban unattended-upgrades tzdata lsof
+  tmux mosh ufw fail2ban unattended-upgrades tzdata lsof \
+  ripgrep fzf zoxide bat eza net-tools dnsutils sysstat \
+  mtr-tiny fd-find ncdu tree iotop iperf3 glow pandoc btop procs
+
+# Ubuntu/Debian rename fd → fdfind and bat → batcat to avoid package-name
+# collisions. Add symlinks so the canonical names Just Work for people (and
+# for the Claws themselves when they shell out).
+for pair in "fdfind fd" "batcat bat"; do
+  src=$(echo "$pair" | awk '{print $1}'); dst=$(echo "$pair" | awk '{print $2}')
+  if command -v "$src" >/dev/null && ! command -v "$dst" >/dev/null; then
+    sudo ln -sf "$(command -v "$src")" "/usr/local/bin/$dst"
+  fi
+done
+
+# GitHub CLI (gh) — not in default Ubuntu apt repos; add GitHub's official repo.
+if ! command -v gh >/dev/null 2>&1; then
+  say "   installing GitHub CLI (gh) via GitHub's apt repo…"
+  sudo mkdir -p -m 755 /etc/apt/keyrings
+  curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
+    sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null
+  sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | \
+    sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+  sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq gh
+fi
+
+# yq (mikefarah's Go-based YAML processor — NOT the python-yq in Ubuntu apt).
+# Direct binary install from GitHub releases; cleaner than snap.
+if ! command -v yq >/dev/null 2>&1; then
+  say "   installing yq (mikefarah)…"
+  YQ_ARCH=$(dpkg --print-architecture)
+  sudo curl -fsSL -o /usr/local/bin/yq \
+    "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${YQ_ARCH}"
+  sudo chmod +x /usr/local/bin/yq
+fi
 
 sudo timedatectl set-timezone "$TIMEZONE" || warn "Couldn't set tz $TIMEZONE"
 
