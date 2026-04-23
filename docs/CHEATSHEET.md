@@ -135,10 +135,20 @@ Full guide — what each slot is for, why every slug starts with `openrouter/`, 
 
 ## Rotate Gateway Token
 
+This script runs **on the VM**, not on your client PC — so there's no separate `.ps1` version for Windows. Windows users SSH into the VM and run the `.sh` script there (the VM is Ubuntu; bash is native).
+
 ```bash
+# Mac (client) → one command
+ssh my-oraclaw 'bash ~/oraclaw/scripts/rotate-gateway-token.sh'
+
+# Windows (client) → same command in PowerShell
+ssh my-oraclaw 'bash ~/oraclaw/scripts/rotate-gateway-token.sh'
+
+# Or interactively on the VM after ssh'ing in
 bash ~/oraclaw/scripts/rotate-gateway-token.sh
-# Script prints new token once — paste into dashboard ⚙ Settings → Save
 ```
+
+Script prints the new token once — paste into dashboard ⚙ Settings → Save.
 
 ## Rotate OpenRouter Key
 

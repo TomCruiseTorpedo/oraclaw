@@ -148,6 +148,13 @@ if ($loggedOut) {
     Warn '     new Tailscale account if you do not have one yet).'
     Warn '  2. Approve this device in the Tailscale admin console.'
     & $tailscaleCli up
+    if ($LASTEXITCODE -ne 0) {
+        Warn ''
+        Warn 'Tailscale login did not complete (likely browser auth cancelled or timed out).'
+        Warn 'Open the Tailscale app manually from the Start menu, sign in there, then'
+        Warn "re-run this script. Alternatively, run ``& '$tailscaleCli' up`` by hand."
+        exit 1
+    }
     Info 'Tailscale online'
 } else {
     Info 'Tailscale is already online.'

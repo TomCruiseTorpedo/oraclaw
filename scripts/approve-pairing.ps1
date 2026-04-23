@@ -43,7 +43,13 @@ if (-not $VmHost) {
 Write-Host "Checking $VmHost for device-pairing requests..." -ForegroundColor Cyan
 Write-Host ""
 
-$output = (ssh -o ConnectTimeout=5 $VmHost 'openclaw devices list' 2>&1 | Out-String)
+# Source nvm explicitly before running openclaw.  Default Ubuntu .bashrc has
+# a non-interactive early-return at the top, so a plain `ssh host 'openclaw ...'`
+# finds openclaw missing from PATH (it lives under ~/.nvm/versions/node/v.../bin/).
+# Sourcing nvm.sh sets NVM_DIR, prepends the active node's bin dir to PATH, and
+# makes openclaw runnable.
+$ocEnv = 'export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'
+$output = (ssh -o ConnectTimeout=5 $VmHost "$ocEnv; openclaw devices list" 2>&1 | Out-String)
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Could not reach $VmHost (check Tailscale + VM status)."
     exit 1
@@ -79,6 +85,6 @@ if ($uuids.Count -eq 1) {
     }
 }
 
-ssh $VmHost "openclaw devices approve '$reqId'"
+ssh $VmHost "$ocEnv; openclaw devices approve '$reqId'"
 Write-Host ""
 Write-Host "[OK] Device approved. Refresh your browser now." -ForegroundColor Green

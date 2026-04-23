@@ -154,9 +154,22 @@ else
   warn "  3. Approve this device."
   open -a Tailscale || true
   echo ""
-  info "Waiting for Tailscale to come online…"
+  info "Waiting for Tailscale to come online (5 min timeout)…"
+  # Bounded wait — if the user cancels the browser auth or doesn't complete
+  # it within 5 min, print a clear message instead of hanging forever.
+  TS_DEADLINE=$(( $(date +%s) + 300 ))
   while ! /opt/homebrew/bin/tailscale status >/dev/null 2>&1 \
      && ! /Applications/Tailscale.app/Contents/MacOS/Tailscale status >/dev/null 2>&1; do
+    if (( $(date +%s) >= TS_DEADLINE )); then
+      echo ""
+      warn "Tailscale still not online after 5 minutes.  Likely causes:"
+      warn "  • Browser auth window was closed or cancelled"
+      warn "  • You're stuck on the identity-provider sign-in page"
+      warn "  • Tailscale account needs email verification"
+      warn ""
+      warn "Click the Tailscale menu-bar icon → finish sign-in, then re-run $0."
+      exit 1
+    fi
     sleep 3
   done
   info "Tailscale online"
