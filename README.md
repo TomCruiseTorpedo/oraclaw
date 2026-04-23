@@ -150,6 +150,7 @@ oraclaw/
     ├── approve-pairing.ps1         ← Windows 11: same
     ├── recover-gateway.sh          ← Mac: one-shot "bring my dashboard back" command
     ├── recover-gateway.ps1         ← Windows 11: same
+    ├── install-shell-utils.sh      ← retrofit shell QoL utilities onto existing VMs (ripgrep/fzf/zoxide/bat/…)
     └── rotate-gateway-token.sh     ← rotate the gateway auth token (runs on the VM; no .ps1 needed)
 ```
 
