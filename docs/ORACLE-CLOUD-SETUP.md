@@ -110,49 +110,105 @@ The script below creates an SSH keypair and prints the public half. Zero depende
 
 4. It prints a big green line starting with `ssh-ed25519`. **That whole line is your public key.** Keep this PowerShell window open — you'll paste this line into Oracle Cloud in the next step.
 
-> **If you'd really rather not touch a terminal**, Oracle Cloud's VM creation page can also generate a keypair for you and download both halves as files. If you want to go that route, skip ahead to Step 4, pick **"Generate a key pair for me"** when you reach the SSH keys section, and save the downloaded `.key` file somewhere you can find it. Your client setup in Step 8 (the bootstrap script) will need that file to SSH in later. Ask your helper (or your AI assistant) to show you where to put it.
+> **If you'd really rather not touch a terminal**, Oracle Cloud's VM creation page can also generate a keypair for you and download both halves as files. If you want to go that route, skip ahead to Step 6, pick **"Generate a key pair for me"** when you reach the SSH keys section, and save the downloaded `.key` file somewhere you can find it. Your client setup later (the bootstrap script) will need that file to SSH in. Ask your helper (or your AI assistant) to show you where to put it.
 
 ---
 
-## Step 4 — Create the Compute Instance (your VM)
+## Step 4 — Create a compartment (required, 2 minutes)
 
-You can start this as soon as PAYG is active (check your profile → My Services → Pay As You Go).
+A **compartment** is an Oracle Cloud folder that holds your resources (VMs, networks, storage, etc.). When you signed up, Oracle gave you one at the top of the tree called the **root compartment**. **Don't put your Oraclaw directly in root.** Create a subcompartment for it and work there. Same principle as using a user account on your Mac/PC instead of the admin account — you keep your everyday work in a sandbox.
 
-> **If the UI feels overwhelming**, the goal of this step is: click "Create Instance", fill in 4–5 fields (name, shape, OS image, SSH key, subnet), click Create. Everything else is fine at default.
+1. In the Oracle Cloud console, click the **hamburger menu** (☰, top-left) → **Identity & Security** → **Compartments**.
+2. You'll see at least one entry with `(root)` next to its name — that's your root. Don't create anything there.
+3. Click the black **Create compartment** button.
+4. Fill in:
+   - **Name:** `claws` (or `oraclaws`, or whatever you like — this is the folder your Oraclaw VMs will live in)
+   - **Description:** `Oraclaw VM environment`
+   - **Parent compartment:** leave the default (your root compartment).
+5. Click **Create compartment**.
 
-1. In the Oracle Cloud console, click the top-left **hamburger menu** → **Compute** → **Instances**.
-2. Click **Create instance**.
-3. **Name:** something memorable, like `my-oraclaw` (lowercase, no spaces). This becomes your SSH alias later.
-4. **Placement:** leave the defaults (your home region, any availability domain).
-5. **Image and shape:** click **Change image** → pick **Canonical Ubuntu** → **Ubuntu 24.04 Minimal** → **aarch64 (ARM)**. Click **Select image**. Then click **Change shape** → **Ampere** → **VM.Standard.A1.Flex** → set **OCPUs: 2** and **Memory: 12 GB**. Click **Select shape**.
+Status should turn **Active** in a few seconds. You now have:
 
-   This is the Always Free Ampere shape. 2 OCPUs + 12 GB RAM leaves half of your free-tier quota available for a second VM later if you want.
+```
+your-tenancy-root    (root)   ← don't put stuff here
+   └── claws                   ← VMs, VCNs, etc. go here
+```
 
-6. **Networking:** leave all defaults. (If this is your first instance, Oracle auto-creates a Virtual Cloud Network and public subnet for you.)
-7. **Boot volume:** the default 47 GB is fine. If you want more (up to 200 GB shared across all instances in the free tier), click **Specify a custom boot volume size** and bump it to 100 GB.
-8. **SSH keys:**
+> **Gotcha that costs hours:** every OCI page has a **Compartment** filter at the top-left of the page content. If you ever "can't find" a VM or VCN you just created, it's almost certainly because the filter is showing root while your resource is in `claws` (or vice versa). Before you create anything new OR hunt for something existing, **glance at the compartment filter first**.
+
+---
+
+## Step 5 — Create the network (VCN) using the Wizard
+
+Oracle Cloud networks (VCNs) have a lot of moving parts: CIDR blocks, subnets, internet gateways, route tables, and security lists. Setting them up by hand is a minefield — forgetting any one piece means your VM can't be reached. The **VCN Wizard** sets all of this up correctly for you in one shot with sane defaults.
+
+**⚠️ The Wizard button is hidden.** The big obvious **Create VCN** button on the VCN list page puts you in the manual form (the minefield). You want the Wizard, which is buried in the **Actions** dropdown to the right of the Create VCN button.
+
+1. Hamburger menu (☰) → **Networking** → **Virtual Cloud Networks**.
+2. At the top of the page content, click the **Compartment** filter dropdown and pick your `claws` compartment (NOT root — this is where the gotcha from Step 4 shows up).
+3. Click the **Actions** dropdown button — it's to the **right of the big black "Create VCN" button**, with a little ▼ on it. A small menu drops down.
+4. Click **Start VCN Wizard** in that dropdown menu.
+5. On the Wizard's first screen, select **"VCN with Internet Connectivity"** → click **Start VCN Wizard**.
+6. Fill in:
+   - **VCN name:** `claws-vcn` (or whatever — this is the network your Oraclaws will share)
+   - **Compartment:** should pre-fill to `claws`. If not, set it.
+   - **IPv4 CIDR blocks:** leave the defaults. The Wizard pre-populates sensible values (`10.0.0.0/16` for the VCN, `10.0.0.0/24` for public subnet, `10.0.1.0/24` for private subnet). Do NOT change these unless you have a specific reason.
+7. Click **Next** → review → **Create**.
+8. Wait for the **"Virtual Cloud Network creation complete"** banner (~30 seconds).
+
+Verify on the VCN list: `claws-vcn` appears with status **Available**. Click into it; you should see **2 subnets** (one public, one private), an **Internet Gateway**, a **Default Route Table**, and a **Default Security List**. Those are the pieces the Wizard made for you — don't touch them.
+
+> **Why not the manual Create VCN?** Because creating a working VCN by hand requires: (a) picking non-overlapping CIDRs; (b) creating a subnet; (c) attaching an internet gateway; (d) adding a route pointing at the gateway; (e) opening port 22 in the security list. Forget any one and nothing works. The Wizard does all five. The manual button is for advanced users who need something non-standard.
+
+---
+
+## Step 6 — Create the Compute Instance (your VM)
+
+You can start this as soon as PAYG is active **and** you've done Steps 4 + 5 above.
+
+> **If the UI feels overwhelming**, the goal of this step is: click "Create Instance", fill in 5–6 fields (compartment, name, shape, OS image, VCN, SSH key), click Create. Everything else is fine at default.
+
+1. Hamburger menu → **Compute** → **Instances**.
+2. At the top of the page content, click the **Compartment** filter and pick your `claws` compartment.
+3. Click **Create instance**.
+4. **Name:** something memorable, like `my-oraclaw` (lowercase, no spaces). This becomes your SSH alias later.
+5. **Placement:** leave the defaults (your home region, any availability domain).
+6. **Image and shape:**
+   - Click **Change image** → **Canonical Ubuntu** → **Ubuntu 24.04 Minimal** → **aarch64 (ARM)**. Click **Select image**.
+   - Click **Change shape** → **Ampere** → **VM.Standard.A1.Flex** → set **OCPUs: 2** and **Memory: 12 GB**. Click **Select shape**.
+
+   This is the Always Free Ampere shape. 2 OCPUs + 12 GB RAM leaves half your free-tier quota for a second VM later.
+
+7. **Networking:**
+   - **Virtual cloud network:** pick `claws-vcn` (the one from Step 5).
+   - **Subnet:** pick the **public** subnet (named `Public Subnet-claws-vcn` or similar). Public means your VM can reach the internet (Tailscale needs this to call home during install). It does NOT mean your VM is publicly reachable — inbound is still gated by the security list you didn't touch.
+   - Confirm **"Assign a public IPv4 address"** is **checked**. If it's greyed out, you skipped Step 5 — back up and create the VCN via the Wizard first.
+8. **Boot volume:** 47 GB default is fine. Bump to 100 GB if you want headroom (up to 200 GB shared across all free-tier instances).
+9. **SSH keys:**
    - Select **Paste public keys**.
    - Paste the green line from Step 3 (starts with `ssh-ed25519`).
    - **If you went the "let Oracle generate a key pair" route** instead: pick that option here, and make sure you click **Save private key** AND **Save public key** — you'll need both files.
 
-9. Click **Create**.
+10. Click **Create**.
 
-The VM takes about 2 minutes to provision. The **State** badge moves from Provisioning → Running. You now have a Linux server running 24/7 in Oracle's data center, reachable only over Tailscale once you connect your client in the next step.
+The VM takes about 2 minutes. The **State** badge goes Provisioning → Running. You now have a Linux server running 24/7 in Oracle's data center, reachable only via Tailscale once your client connects in Step 7.
 
 **Write down** (or screenshot) the public IP that Oracle shows on the instance detail page. You won't need it often (Tailscale handles hostnames), but if Tailscale ever breaks this is the backup.
 
 ---
 
-## Step 5 — Hand off to the Field Manual
+## Step 7 — Hand off to the Field Manual
 
 Everything from here is in **[docs/FIELD-MANUAL.md](FIELD-MANUAL.md)**, starting at **Section 4** (Set Up Your Client Machine).
 
 If someone is helping you in person:
-- You've done Sections 1–3 of the Field Manual via this doc.
+- You've done Sections 1–3 of the Field Manual via this doc (plus the compartment + VCN extras).
 - Hand the Field Manual to your helper (or paste a harness prompt from `docs/HARNESS-PROMPTS.md`).
 - They'll walk you through Sections 4–7 (client setup → connect → install Oraclaw → open dashboard).
 
 **Estimated remaining time:** 15–20 minutes, mostly downloads.
+
+> **How Tailscale fits in:** Tailscale lives in **two places** by the end of Section 7 — on your client machine (Mac/Windows) as a menu-bar/tray app, installed by the Section 4 bootstrap script, and on the VM as a background service, installed by `install-oraclaw.sh` in Section 6. Both connect to the same tailnet under your single Tailscale account. Your client can then SSH + open the dashboard on the VM using Tailscale hostnames, with no public ports exposed to the internet.
 
 ---
 
@@ -187,9 +243,11 @@ Confirm all of these before moving on to Field Manual Section 4:
 - [ ] Oracle Cloud account created and confirmed via email
 - [ ] **Pay As You Go upgrade approved** (profile → My Services shows "Pay As You Go")
 - [ ] SSH key generated (or Oracle-generated keypair saved)
-- [ ] VM created, state shows **Running**
-- [ ] Tailscale account ready (even if app not yet installed)
+- [ ] **Compartment created** (e.g. `claws`) — NOT using root directly
+- [ ] **VCN created via the Wizard** (e.g. `claws-vcn`) inside that compartment, status **Available**, with 2 subnets visible
+- [ ] VM created inside your `claws` compartment + `claws-vcn` network, state shows **Running**, public IP shown
+- [ ] Tailscale account ready (the Tailscale **app itself** is NOT installed yet — that happens in Field Manual Section 4 for your client and Section 6 for the VM)
 - [ ] OpenRouter account + API key copied somewhere safe
 - [ ] GitHub account exists (for cloning the repo on your client)
 
-If you can tick all 7, you're ready. Continue to [`docs/FIELD-MANUAL.md`](FIELD-MANUAL.md) Section 4.
+If you can tick all 9, you're ready. Continue to [`docs/FIELD-MANUAL.md`](FIELD-MANUAL.md) Section 4.

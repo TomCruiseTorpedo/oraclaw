@@ -67,7 +67,10 @@ OpenClaw is an AI "agentic harness" — think of it like Cursor or Claude Code, 
 - A **real phone number** that can receive SMS (for Oracle verification)
 - A **credit card** (Oracle verifies it but won't charge you as long as you stay in the Always Free tier)
 - An **OpenRouter account + API key**. Sign up at [openrouter.ai](https://openrouter.ai). The free tier via API is capped at **50 calls/day** — fine for trying it, tight for daily use. A one-time **$10 top-up** raises the free-model cap to **1000 calls/day** and is **strongly recommended on day one** — you are already adding a credit card to Oracle, and OpenRouter will not charge you per call on free models. The $10 sits on your account until you actually burn it (which could take years on free models).
-- A **Tailscale account** (free personal tier) at [tailscale.com](https://tailscale.com). **You do NOT need to install Tailscale itself yet** — the client bootstrap script in Section 4 installs and configures it for you. Just the account is fine for now.
+- A **Tailscale account** (free personal tier) at [tailscale.com](https://tailscale.com). **You do NOT need to install Tailscale itself yet.** By the end of setup, Tailscale will live in **two places under your single account**:
+  - On your **client machine** (Mac or Windows 11 PC) — as a menu-bar app with a GUI. The client bootstrap in Section 4 installs this for you.
+  - On the **Oracle Cloud VM** — as a background service (`tailscaled`). The installer in Section 6 sets this up for you.
+  - Both show up on the same tailnet, so your client can SSH + reach the dashboard on the VM even though the VM has no public HTTPS port open.
 - A **GitHub account** (free) at [github.com](https://github.com). You'll use this to clone this repo onto your client machine.
 
 **You don't need:**
@@ -196,31 +199,53 @@ Oracle Cloud's Always Free tier is real — you will never be charged for resour
 
 > **Before you start Section 3:** confirm your account is **Pay As You Go** (Section 2.1). If it still says **Free Trial** or **Always Free Only**, go back and wait for the PAYG email — creating an instance before PAYG is approved wastes your time.
 
-### 3.1 Create a compartment (recommended)
+### 3.1 Create a compartment (required)
 
-A compartment is an OCI folder that isolates your resources.
+A compartment is an OCI folder that isolates your resources. Think of it like a home directory on a computer: you don't do your everyday work as `root`, you do it in a user account whose scope is limited. Same idea here — you don't create VMs and VCNs directly in the root compartment, you create a **subcompartment** and put them in there.
+
+When you open the Compartments page, you'll see at least one entry with `(root)` next to its name — that's the root compartment Oracle created for your tenancy. Do NOT put your Claws directly in root. Always create a subcompartment first.
 
 1. In the OCI console, click the **hamburger menu** (☰, top-left) → **Identity & Security** → **Compartments**.
-2. Click **Create Compartment**.
-3. Name: `oraclaw` · Description: `Oraclaw environment` · Parent: `(root)`.
-4. Click **Create**.
+2. You'll see your root compartment at the top (the one with `(root)` after its name). This was created automatically when you signed up.
+3. Click **Create Compartment**.
+4. Fill in:
+   - **Name:** `claws` (or `oraclaws`, or whatever you like — this is the folder all your Oraclaw VMs will live in)
+   - **Description:** `Oraclaw VM environment`
+   - **Parent compartment:** pick your **root compartment** from the dropdown (it's the default).
+5. Click **Create compartment**.
 
-### 3.2 Create the network (VCN) — BEFORE the instance
+Status should turn **Active** within a few seconds. You now have:
 
-**⚠️ Gotcha:** if you skip this and let the instance-creation form auto-create a VCN, the **public IP field can get greyed out** and you won't be able to SSH in. Always create the VCN first, in its own step. See [Oracle's public-subnet docs](https://docs.oracle.com/en-us/iaas/Content/Network/Tasks/scenario_a_pubsub.htm) for the long version.
+```
+your-tenancy-root   (root)
+   └── claws        ← you'll create VMs, VCNs, etc. in here
+```
 
-1. Hamburger menu → **Networking** → **Overview**.
-2. Compartment dropdown (top of page) → `oraclaw`.
-3. Find the panel **"Create a VCN with internet connectivity"** → click **Start VCN wizard**.
-4. Fill it in:
-   - **VCN name:** `oraclaw-vcn` (or whatever you like)
-   - **Compartment:** `oraclaw`
-   - **IPv4 CIDR blocks:** if pre-populated, leave the defaults. If empty, enter `10.0.0.0/16` for the VCN, `10.0.0.0/24` for the public subnet, `10.0.1.0/24` for the private subnet.
-5. **Review** → **Create VCN**. Wait for the **"Virtual Cloud Network creation complete"** banner.
+> **Gotcha that costs hours:** every page in OCI has a **Compartment** dropdown filter at the top-left of the page content. OCI defaults to showing resources in the root compartment. If you ever "can't find" a VM or VCN you just created, it's almost certainly because your filter is set to root and the resource is in your subcompartment (or vice versa). Always glance at the compartment filter before assuming something is missing.
 
-The wizard creates a public subnet, an internet gateway, route tables, and a default security list that allows SSH — all in one shot. Doing this manually means forgetting one piece and wondering why nothing works.
+### 3.2 Create the network (VCN) — BEFORE the instance, and use the Wizard
 
-Verify: the VCN is listed with status **Available** and shows **2 subnets** (one public, one private).
+**⚠️ Two gotchas that cost hours apiece:**
+
+1. **Skip this step entirely** and let the instance-creation form auto-create a VCN for you → the **public IP field can get greyed out** and you won't be able to SSH in.
+2. **Click the big "Create VCN" button** at the top of the VCN list page → you'll land in a manual form where you have to enter CIDR blocks, subnets, internet gateways, route tables, and security rules by hand. Forget any one piece and nothing works.
+
+The fix for both: use **"Start VCN Wizard"** instead. It's hidden in the **Actions dropdown** right next to the Create VCN button, not on the button itself. The Wizard pre-fills sane defaults for every field — one click and you have a working VCN with public subnet, internet gateway, route tables, and default security rules.
+
+1. Hamburger menu (☰) → **Networking** → **Virtual Cloud Networks**.
+2. **Compartment dropdown** at the top-left of the page content → select your `claws` compartment (NOT root).
+3. Click the **Actions** dropdown (right next to the big black "Create VCN" button — do **not** click "Create VCN" itself) → **Start VCN Wizard**.
+4. On the first screen, select **"VCN with Internet Connectivity"** → **Start VCN Wizard**.
+5. Fill in:
+   - **VCN name:** `claws-vcn` (or whatever — this is the network all your Claws will live on)
+   - **Compartment:** `claws` (should be pre-filled from your selection in step 2)
+   - **IPv4 CIDR blocks:** leave the defaults (Wizard pre-populates `10.0.0.0/16` for the VCN, `10.0.0.0/24` for the public subnet, `10.0.1.0/24` for the private subnet — all sane).
+6. Click **Next** → review the summary → **Create**.
+7. Wait for the **"Virtual Cloud Network creation complete"** banner (~30 seconds).
+
+Verify: back on the **Virtual Cloud Networks** list (with the `claws` compartment still selected), your new VCN should appear with status **Available**. Click into it; you should see **2 subnets** (one public, one private), an **Internet Gateway**, a **Default Route Table**, and a **Default Security List**.
+
+> **Why the Wizard and not the manual form:** the Wizard bakes in the correct CIDRs, gateways, route table entries, and security rules for the "VM needs public SSH access" pattern. Doing it manually means remembering to: (a) pick non-overlapping CIDRs, (b) create the subnet, (c) attach an internet gateway, (d) add a 0.0.0.0/0 route pointing at the gateway, (e) open port 22 in the security list. Miss any one of those and your VM can't be reached. The Wizard handles all of it; the manual form is a five-footgun minefield.
 
 ### 3.3 Create the instance (VM)
 
@@ -245,9 +270,10 @@ Verify: the VCN is listed with status **Available** and shows **2 subnets** (one
 7. **Shielded instance** and **Use in-transit encryption:** leave **BOTH off** for first-time setups. They're collapsed sections further down the page.
    - These add boot-time overhead and have caused install-time friction on Ampere A1. Your VM will already be behind Tailscale (no public dashboard at all), UFW (default-deny), fail2ban, and SSH hardening once `install-oraclaw.sh` finishes — that is more than enough for a single-operator agentic harness.
 8. **Networking:**
-   - **Virtual cloud network:** pick `oraclaw-vcn` (the one from Section 3.2).
-   - **Subnet:** pick the **public** subnet (`Public Subnet-oraclaw-vcn` or similar).
-   - Confirm **"Assign a public IPv4 address"** is **checked**. (If it's greyed out, you skipped Section 3.2 — back up and create the VCN first.)
+   - **Compartment:** pick your `claws` compartment (from Section 3.1).
+   - **Virtual cloud network:** pick `claws-vcn` (the one from Section 3.2).
+   - **Subnet:** pick the **public** subnet (named `Public Subnet-claws-vcn` or similar — the Wizard creates both public and private; you want public so Tailscale can reach out).
+   - Confirm **"Assign a public IPv4 address"** is **checked**. (If it's greyed out, you skipped Section 3.2 — back up and create the VCN via the Wizard first.)
 9. **SSH keys:**
    - Select **Paste public keys**.
    - Paste the line that starts with `ssh-ed25519 …` — from Section **§1.5** (if you haven't printed it recently, re-run `cat ~/.ssh/id_ed25519.pub` on Mac or `Get-Content "$env:USERPROFILE\.ssh\id_ed25519.pub"` on Windows).
@@ -328,6 +354,17 @@ This installs: git, Tailscale, jq via **winget** → generates an SSH key → ad
 ---
 
 ## 5. Connect Your Client to the VM
+
+**How Tailscale bridges your client and the VM:** Tailscale is a zero-config private network (a "tailnet"). Every device you install Tailscale on, logged in under your account, can talk to every other device on that tailnet by hostname — no public IPs, no port forwarding, no DNS setup.
+
+In this kit, Tailscale lives in **two places** under your single Tailscale account:
+
+- **On your client** (Mac / Windows 11) — the bootstrap in Section 4 installed the Tailscale menu-bar/tray app and walked you through logging in. Your client is already on the tailnet.
+- **On the Oracle Cloud VM** — NOT installed yet. You'll install it in §5.1 below.
+
+Both will sit on the same tailnet. Once that's true, you can SSH to the VM using just its Tailscale hostname (no IP needed), and the dashboard is reachable at a `.ts.net` URL that only your authenticated devices can open.
+
+> **Why bother?** Because without Tailscale the VM either needs a public SSH port (attack-surface headache) or a VPN (much more setup). Tailscale gives you the "public access from my own devices, invisible to everyone else" flavor with zero networking config.
 
 ### 5.1 Install Tailscale on the VM
 
