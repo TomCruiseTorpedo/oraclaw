@@ -260,7 +260,7 @@ Scroll down, still on Networking:
 Click **Next**.
 
 - **Boot volume:** turn **ON** "Specify a custom boot volume size and performance setting".
-  - **Boot volume size: 50 GB** (or higher, up to 200 GB total across free-tier instances).
+  - **Boot volume size: 100 GB** (the recommended default). Fits under the 200 GB Always-Free block-storage quota with room for a second Oraclaw later. The slider's minimum (46.6 GB) works but gives you no long-term headroom for logs, caches, and updates.
   - **Boot volume performance: 120 VPU** (max; still free). Faster disk.
 - **Use in-transit encryption: OFF**.
 - **Encrypt this volume with a key that you manage: OFF** (default).

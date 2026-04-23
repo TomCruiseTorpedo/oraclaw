@@ -354,7 +354,7 @@ Still on the Networking page, scroll down:
 Click **Next** to move to Storage.
 
 - **Boot volume:** turn **ON** "Specify a custom boot volume size and performance setting".
-  - **Boot volume size (GB): 50** (or higher — up to 200 GB total across all free-tier instances). 50 GB is enough for our stack and leaves headroom. Default 46.6 GB is almost enough but tight.
+  - **Boot volume size (GB): 100** (the recommended default — matches the sizing table in Step 1). This fits comfortably under the Always Free tier's 200 GB total block-storage quota and leaves room for a second Oraclaw later. Oracle's default of 46.6 GB is tight; 50 GB works but gives you almost no headroom for logs, model caches, and updates over time. Go to 200 GB only if you're making this your single "maximum power" Oraclaw (see the table in Step 1).
   - **Boot volume performance (VPU): 120** (the maximum). The slider goes 10 → 120. Higher VPU = more IOPS and throughput for your boot volume, which speeds up `apt install`, `npm install`, heartbeat cron, etc. **120 VPU is still free** — VPU is a speed tier, not a paid upgrade.
 - **Use in-transit encryption: OFF**. The default is off. Adds overhead for negligible benefit inside the tailnet.
 - **Encrypt this volume with a key that you manage: OFF**. Default. Oracle manages the disk-encryption key for you, which is fine — the threat model doesn't benefit from you managing it manually.
