@@ -82,7 +82,7 @@ OpenClaw is an AI "agentic harness" — think of it like Cursor or Claude Code, 
 **A helpful extra:** an AI coding assistant. For this kit, in preference order:
 
 1. **Antigravity** (Google's agentic IDE) — most generous free tier, uses your existing Google account, runs shell commands on your machine by default. **Our first choice.**
-2. **Cursor** — strong AI IDE. Before you start, go to **Settings → Terminal → allow shell execution** (it's off by default — this is why a lot of Cursor first-timers get stuck).
+2. **Cursor** — strong AI IDE. Before you start, open **Cursor Settings → Agents → Auto-Run → Auto-Run Mode** and switch it off **"Auto-Run in Sandbox"** to a non-sandbox mode so Cursor's commands can actually reach your host machine (see [docs/HARNESS-PROMPTS.md § Why Cursor](HARNESS-PROMPTS.md#why-cursor-second-choice) for why this trips up a lot of first-timers).
 3. **GitHub Copilot Chat in VS Code** — weakest free models (Claude Haiku 4.5, GPT-5-mini) but the biggest usage cap. Good fallback.
 
 Skip **Claude.ai**: Claude Code (the agentic CLI) requires paid Pro/Max, and the free web chat can't run shell commands.
@@ -289,7 +289,7 @@ OCI's "Create compute instance" is a **4-step wizard**: Basic information → Se
 
 - **Name:** something memorable — e.g. `my-oraclaw`, `jarvis`, `friday`. Lowercase, no spaces. *This becomes your Tailscale hostname later.* Oracle's default `instance-<timestamp>` is legal but uselessly ugly; change it.
 - **Create in compartment:** your **subcompartment** (e.g. `claws`). If you see `tomcruisemissile (root)` or similar expanded at the top of the dropdown, DO NOT pick that; expand the tree and pick your subcompartment below it. Section 3.1 was specifically to give you this subcompartment — use it.
-- **Availability domain (AD):** AD 1 (whatever `dVtA:...-AD-1` is labeled). Only one is shown on Always Free; don't overthink it.
+- **Availability domain (AD):** AD 1 (whatever `dVtA:...-AD-1` is labelled). Only one is shown on Always Free; don't overthink it.
 - **Advanced options** (expand the caret):
   - **Capacity type: On-demand capacity** (the default). NOT "Preemptible" (that can get reclaimed at any time); NOT "Capacity reservation" (that costs money); NOT "Compute cluster" (RDMA workloads, not us).
   - **Cluster placement group: OFF** (leave the toggle off).
@@ -378,7 +378,7 @@ Click **Next** to move to Storage.
 
 #### Before clicking Create — save as a Stack (important for recovery)
 
-Scroll down to the bottom of Step 4. You'll see a **Create** button and, next to it, a link or dropdown labeled **"Save as stack"**, **"Create and save as stack"**, or similar (Oracle's wording has shifted over time; it's always at the bottom of the final step).
+Scroll down to the bottom of Step 4. You'll see a **Create** button and, next to it, a link or dropdown labelled **"Save as stack"**, **"Create and save as stack"**, or similar (Oracle's wording has shifted over time; it's always at the bottom of the final step).
 
 1. Click **Save as stack** (or "Create and save as stack" if that's the wording).
 2. Give the stack a name: e.g. `my-oraclaw-stack`.

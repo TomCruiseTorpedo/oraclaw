@@ -407,7 +407,7 @@ SVC
 # If the gateway exits cleanly (exit code 0) and systemd then hits the
 # StartLimitBurst ceiling, Restart=always alone isn't enough — we need a
 # separate timer to probe /health and kick the service back up.  This is
-# the defense-in-depth that makes the Control UI "Update" button safe.
+# the defence-in-depth that makes the Control UI "Update" button safe.
 say "   installing update-safety watchdog (60s /health probe)…"
 mkdir -p "$HOME/.local/bin"
 cat > "$HOME/.local/bin/openclaw-gateway-watchdog.sh" <<'WATCHDOG'

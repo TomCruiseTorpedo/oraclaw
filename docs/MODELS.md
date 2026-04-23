@@ -69,7 +69,7 @@ You don't *have* to set a different heartbeat model from your primary — it's f
 
 ## How to reorder the fallbacks chain
 
-Edit `agents.defaults.model.fallbacks` (a JSON array). Order matters — the first entry is tried first. Put your favorite fallback at the top and the least-trusted at the bottom. Save and restart.
+Edit `agents.defaults.model.fallbacks` (a JSON array). Order matters — the first entry is tried first. Put your favourite fallback at the top and the least-trusted at the bottom. Save and restart.
 
 Adding a new fallback: drop its slug into the array *and* into `agents.defaults.models`. The registry requirement catches typos — the gateway will complain loudly if you reference a slug that isn't registered.
 

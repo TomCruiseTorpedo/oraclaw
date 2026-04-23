@@ -9,7 +9,7 @@
 A terminal is a window where you type commands and your computer runs them. It looks like this:
 
 - Your Mac calls its terminal **Terminal.app** (or iTerm2 if you installed that).
-- Your Windows 11 PC calls it **PowerShell** (or Windows Terminal, which is the same thing with better colors).
+- Your Windows 11 PC calls it **PowerShell** (or Windows Terminal, which is the same thing with better colours).
 
 It's the same computer, same files, same everything — just without buttons and menus. Instead you type.
 

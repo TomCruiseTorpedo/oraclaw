@@ -16,12 +16,12 @@ Short version: **Antigravity first. Cursor or GitHub Copilot Chat in VS Code are
 
 - **Most generous free tier of the three** — you'll rarely run out of credits during a full Oraclaw setup.
 - **You already have a Google account.** Antigravity is Google's agentic IDE — sign in with the account you use for Gmail / Drive / YouTube. No new billing relationship.
-- **Runs shell commands on your machine by default.** This matters *a lot* for this kit. Cursor's default "sandbox" mode refuses to execute shell commands until you explicitly flip a setting — which leaves a lot of first-timers stuck, because the AI is reading the Field Manual to them but can't actually *run* any of it. Antigravity doesn't have that problem.
+- **Runs shell commands on your machine by default.** This matters *a lot* for this kit. Cursor's default Auto-Run Mode (called **"Auto-Run in Sandbox"**) runs the AI's commands inside an isolated environment so they can't touch your actual files, SSH keys, or Tailscale — which leaves a lot of first-timers stuck, because the AI is walking through the Field Manual but its commands never reach the host. Antigravity doesn't have that problem.
 - Models are strong (Gemini 3.1 Pro, Claude Sonnet 4.6).
 
 ### Why Cursor (second choice)
 
-Solid AI IDE. Main catch: the default sandbox refuses shell commands. **Before you start, go to Settings → Terminal → allow shell execution.** Free tier has tighter usage caps than Antigravity, but the included models (Composer 1.5) are capable. If you already use Cursor daily, it's a fine choice.
+Solid AI IDE. Main catch: the default **Auto-Run in Sandbox** mode isolates the AI's commands from your actual host, so it can't touch your SSH keys, Tailscale, or the Oraclaw repo on your disk. **Before you start setup, change it:** open **Cursor Settings → Agents → Auto-Run → Auto-Run Mode**, and switch it off **"Auto-Run in Sandbox"** to a mode that lets commands run on your host (the dropdown will show the non-sandbox options; the description under it explains what each one does). Included models (Composer 1.5) are capable. If you already use Cursor daily, it's a fine choice.
 
 ### Why GitHub Copilot Chat in VS Code (third choice)
 
