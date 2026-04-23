@@ -1,0 +1,33 @@
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets — never commit any of these
+.env
+*.key
+*.pem
+id_ed25519
+id_ed25519.pub
+id_rsa
+id_rsa.pub
+**/openclaw-docker.json
+**/openclaw.json
+
+# Editor / IDE metadata
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files created by scripts (*.pre-<something>.<epoch>)
+*.bak
+*.bak.*
+*.pre-*
+*.orig
+
+# Temp / build
+tmp/
+*.tmp
+*.log
