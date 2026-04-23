@@ -127,7 +127,7 @@ Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 **Step 2.** Install git:
 
 ```powershell
-winget install --id Git.Git --exact --silent --accept-source-agreements --accept-package-agreements
+winget install --id Git.Git --exact --silent --source winget --accept-source-agreements --accept-package-agreements
 ```
 
 **Step 3.** **Close this PowerShell window and open a fresh one** so `git` is on PATH. Then clone the repo:
@@ -446,7 +446,7 @@ This installs: git, Tailscale, jq via **winget** → generates an SSH key → ad
 3. Install git (skip if you already have it):
 
    ```powershell
-   winget install --id Git.Git --exact --silent --accept-source-agreements --accept-package-agreements
+   winget install --id Git.Git --exact --silent --source winget --accept-source-agreements --accept-package-agreements
    ```
 
 4. **Close this PowerShell window and open a fresh one (as admin again)** so `git` is on PATH. Then clone the kit:

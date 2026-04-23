@@ -99,7 +99,7 @@ The script below creates an SSH keypair and prints the public half. Zero depende
    **Step B.** Install git via winget (built into Windows 11):
 
    ```powershell
-   winget install --id Git.Git --exact --silent --accept-source-agreements --accept-package-agreements
+   winget install --id Git.Git --exact --silent --source winget --accept-source-agreements --accept-package-agreements
    ```
 
    **Step C.** **Close this PowerShell window and open a fresh one** so `git` is on PATH. Then clone the repo:

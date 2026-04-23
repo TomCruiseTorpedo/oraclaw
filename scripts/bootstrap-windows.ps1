@@ -80,7 +80,7 @@ function Install-IfMissing {
         Info "$Friendly already installed"
     } else {
         Info "Installing $Friendly..."
-        winget install --id $Id --exact --silent `
+        winget install --id $Id --exact --silent --source winget `
                        --accept-source-agreements --accept-package-agreements | Out-Host
     }
 }
