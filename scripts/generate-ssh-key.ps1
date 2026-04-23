@@ -45,21 +45,24 @@ if (Test-Path $sshKey) {
 Write-Host ''
 Write-Host '+------------------------------------------------------------------+' -ForegroundColor White
 Write-Host '|  YOUR PUBLIC SSH KEY - copy the ENTIRE line in green below       |' -ForegroundColor White
-Write-Host '|  All THREE parts together: algorithm, key material, AND comment. |' -ForegroundColor White
+Write-Host '|  Triple-click to select the whole line cleanly.                  |' -ForegroundColor White
 Write-Host '+------------------------------------------------------------------+' -ForegroundColor White
 Write-Host ''
 Write-Host (Get-Content "$sshKey.pub") -ForegroundColor Green
 Write-Host ''
-Write-Host 'The line above has three parts - all required:'
+Write-Host 'The line above has two required parts and one optional label:'
 Write-Host ''
 Write-Host "   ssh-ed25519        AAAAC3... (long base64 string)        $env:USERNAME@$env:COMPUTERNAME-..."
 Write-Host "   ^^^^^^^^^^^        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^^^^^"
-Write-Host "   PART 1:            PART 2:                               PART 3:"
-Write-Host "   algorithm name     the actual key (long, don't shorten)  your label/comment"
+Write-Host "   PART 1 (req):      PART 2 (req):                         PART 3 (optional):"
+Write-Host "   algorithm name     the actual key material               label / comment"
 Write-Host ''
-Write-Host 'Copy ALL three parts as one single line.' -ForegroundColor Yellow
-Write-Host 'Oracle Cloud rejects the key if any part is missing - including the comment'
-Write-Host "at the end. The comment isn't decoration, it's part of the key identity."
+Write-Host 'Copy the WHOLE line - triple-click it.' -ForegroundColor Yellow
+Write-Host 'The real failure mode is clipping a few characters off the middle base64'
+Write-Host '(part 2) when drag-selecting; triple-click avoids that in one motion. The'
+Write-Host 'comment (part 3) is just a human label - Oracle Cloud accepts the key with'
+Write-Host "or without it - but triple-click grabs it along for free, and its presence"
+Write-Host "confirms you didn't truncate the line."
 Write-Host ''
 Write-Host 'What to do next:'
 Write-Host "  1. Triple-click the green line above to select the whole thing, then Ctrl+C."

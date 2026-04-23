@@ -144,25 +144,23 @@ git clone https://github.com/TomCruiseTorpedo/oraclaw.git $env:USERPROFILE\oracl
 
 ### What you should see — and what to copy
 
-The script prints a big green block with one long line. **That whole line** is your public SSH key, and it has **three parts — all of which you need to copy together**:
+The script prints a big green block with one long line. **That whole line** is your public SSH key. It has **two required parts** and **one optional label**:
 
 ```
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...long-base64-stuff...xEiKz7 user@computer-20260422
-└─ part 1 ─┘└─────────── part 2 ────────────────────┘ └──────── part 3 ─────────┘
- algorithm       the actual key material (base64)       your label/comment
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...long-base64-stuff...xEiKz7 your-label-here
+└─ part 1 ─┘└─────────── part 2 ────────────────────┘ └─ part 3 (optional) ─┘
+ algorithm       the actual key material (base64)         label / comment
 ```
 
-| Part | What it is | Looks like |
+| Part | What it is | Required? |
 |---|---|---|
-| 1. Algorithm | Always `ssh-ed25519` for the kind of key this kit uses | `ssh-ed25519` |
-| 2. Key material | A long base64 string — roughly 68 characters | `AAAAC3NzaC1...xEiKz7` |
-| 3. Comment | A label added by the generator so you can recognize this key later | `yourname@Your-Macs-Name-20260422` |
+| 1. Algorithm | `ssh-ed25519` for the kind of key this kit uses | **Yes** |
+| 2. Key material | A long base64 string — roughly 68 characters | **Yes** |
+| 3. Comment | A human label so you can recognise this key later. The format depends on how the key was generated: bundled `generate-ssh-key` → `user@host-YYYYMMDD`; standard `ssh-keygen -C "you@example.com"` → your email; bare `ssh-keygen -t ed25519` → none at all | Optional (just a label; Oracle Cloud accepts keys with or without one) |
 
-**Copy ALL three parts as one single line.** If you only copy the middle part (the base64 goo), Oracle Cloud will reject the key without telling you why. The comment at the end — the "email-looking thing" — is **not decoration**; it's part of the key identity and must be included.
+**Copy the entire line — triple-click the green line in your terminal, then Cmd+C / Ctrl+C.** The real risk isn't losing the optional comment; it's accidentally clipping a few characters off the middle base64 key material when drag-selecting. Triple-click selects the whole line cleanly in Terminal.app, iTerm2, and Windows Terminal, avoiding both failure modes in one step.
 
-Triple-clicking the line in most terminals (Terminal.app, iTerm2, Windows Terminal) selects the entire line. Do that, Cmd+C / Ctrl+C, paste into Oracle Cloud Section 3.3 step 9.
-
-> **Sanity check:** after you paste into the Oracle Cloud "Paste public keys" text box, the box should show a single line that starts with `ssh-ed25519 ` and ends with `-YYYYMMDD` (today's date). If what you pasted doesn't start and end that way, you missed one end of the line — go back and triple-click again.
+> **Sanity check after pasting** into the Oracle Cloud "Paste public keys" text box: the line should start with `ssh-ed25519 ` (followed by one space), and the base64 middle section should be a single unbroken run of characters (no spaces, no ellipsis, no line breaks). The ending varies with how you made the key — an email, a `user@hostname-date` stamp, or nothing at all — that's all fine; it's just a label.
 
 > **Security:** don't share the private key file (the one at `~/.ssh/id_ed25519` without the `.pub`). If it leaks, delete it and re-run the script — it'll generate a fresh pair.
 
@@ -361,7 +359,7 @@ Still on the Networking page, scroll down.
 > **⚠ Critical — this key is permanently bound to this instance.** Whatever public key goes into this box is the **only** key that can SSH into your VM, forever. Oracle does not let you change it after the instance is created (not without the serial console, which is painful). **If you lose the matching private key, your only recovery is to terminate this instance and start over** — OCI's Ampere A1 capacity queue can take hours, so take 10 seconds now to confirm the right key.
 
 - Select **Paste public key**.
-- Paste the line from Section **§1.5** — remember, all **three parts** (`ssh-ed25519` + base64 + `user@host-date`). The pasted line must start with `ssh-ed25519 ` and end with today's date or similar. If it doesn't, you only copied part of it — scroll back to §1.5 and triple-click to select the whole line.
+- Paste the line from Section **§1.5**. It must start with `ssh-ed25519 ` (followed by one space) and the base64 middle section should be one unbroken run — no spaces, no ellipsis, no line breaks. If anything looks wrong there, go back to §1.5 and triple-click to select the whole line. (The tail end — an email, a `user@host-date` stamp, or nothing at all — is just a human label and varies depending on how the key was generated. It doesn't affect validity.)
 - If you skipped §1.5 and haven't generated a key yet: **stop here and go back to §1.5**. Do NOT attempt to let the bootstrap in Section 4 generate one afterward — the instance is already married to whichever key you pick HERE.
 - **If you're picking "Generate a key pair for me"** instead (the Oracle-generated route): click BOTH **Save private key** AND **Save public key** before clicking Next. **Oracle will not let you re-download the private key later** — if you miss it, the instance is bricked and you'll need to terminate + recreate. Move both downloaded files into `~/.ssh/` (Mac) or `%USERPROFILE%\.ssh\` (Windows) immediately, not Downloads/ (which your OS may auto-clean).
 

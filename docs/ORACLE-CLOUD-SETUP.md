@@ -83,7 +83,7 @@ The script below creates an SSH keypair and prints the public half. Zero depende
    bash ~/oraclaw/scripts/generate-ssh-key.sh
    ```
 
-4. It prints a big green line starting with `ssh-ed25519`. **That whole line is your public key.** See the "three parts" note below before copying.
+4. It prints a big green line starting with `ssh-ed25519`. **That whole line is your public key.** See the note below on the key's shape before copying.
 
 ### Windows 11
 
@@ -114,29 +114,27 @@ The script below creates an SSH keypair and prints the public half. Zero depende
    & $env:USERPROFILE\oraclaw\scripts\generate-ssh-key.ps1
    ```
 
-4. It prints a big green line starting with `ssh-ed25519`. **That whole line is your public key.** See the "three parts" note below before copying.
+4. It prints a big green line starting with `ssh-ed25519`. **That whole line is your public key.** See the note below on the key's shape before copying.
 
-### The three parts of your public key — copy ALL of them
+### The shape of your public key — copy the whole line
 
 The green line the script prints looks like this:
 
 ```
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...long-base64-stuff...xEiKz7 yourname@your-computer-20260422
-└─ part 1 ─┘└─────────── part 2 ────────────────────┘ └───────────── part 3 ─────────────┘
- algorithm       the actual key material (base64)              your label/comment
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...long-base64-stuff...xEiKz7 your-label-here
+└─ part 1 ─┘└─────────── part 2 ────────────────────┘ └─ part 3 (optional) ─┘
+ algorithm       the actual key material (base64)         label / comment
 ```
 
-| Part | What it is |
-|---|---|
-| 1. Algorithm | `ssh-ed25519` |
-| 2. Key material | ~68 characters of base64 (`AAAAC3...xEiKz7`) |
-| 3. Comment | Your label, e.g. `yourname@your-computer-20260422` |
+| Part | What it is | Required? |
+|---|---|---|
+| 1. Algorithm | `ssh-ed25519` | **Yes** |
+| 2. Key material | ~68 characters of base64 (`AAAAC3...xEiKz7`) | **Yes** |
+| 3. Comment | A human label. Varies: bundled script → `user@host-YYYYMMDD`; standard `ssh-keygen -C "you@example.com"` → your email; no `-C` flag → no comment at all | Optional (just a label; Oracle Cloud accepts keys with or without one) |
 
-**Copy ALL three parts as a single line.** If you only grab the middle (the long base64 goo), Oracle Cloud will reject the key silently. The comment at the end — the email-looking thing — is **not** decoration; it's part of the key identity and must be included.
+**Copy the entire line — triple-click in the terminal → Cmd+C / Ctrl+C.** The real failure mode isn't losing the optional comment; it's clipping characters off the middle base64 key material when drag-selecting. Triple-click (which Terminal.app, iTerm2, and Windows Terminal all interpret as "select whole line") fixes both in one motion.
 
-The easy way: **triple-click** the line in the terminal → Cmd+C / Ctrl+C. Most terminals (Terminal.app, iTerm2, Windows Terminal) interpret triple-click as "select the whole line". Then paste into Oracle Cloud.
-
-**Sanity check after pasting:** Oracle Cloud's "Paste public keys" box should now show one line starting with `ssh-ed25519 ` and ending with today's date (`-20260422` or similar). If either end looks wrong, you missed part of the line — go back and triple-click more deliberately.
+**Sanity check after pasting** into Oracle Cloud's "Paste public keys" box: it should show one line starting with `ssh-ed25519 ` (followed by one space), and the base64 middle section should be an unbroken run — no spaces, no ellipsis, no line breaks. The ending varies with how the key was made (email, `user@host-date`, or nothing) — all fine.
 
 > **If you'd really rather not touch a terminal**, Oracle Cloud's VM creation page can also generate a keypair for you and download both halves as files. If you want to go that route, skip ahead to Step 6, pick **"Generate a key pair for me"** when you reach the SSH keys section, and save the downloaded `.key` file somewhere you can find it. Your client setup later (the bootstrap script) will need that file to SSH in. Ask your helper (or your AI assistant) to show you where to put it.
 
@@ -260,7 +258,7 @@ Scroll down, still on Networking:
 > **⚠ Critical — this key is permanently bound to this instance.** Whatever public key goes into this box is the **only** key that can SSH into your VM, forever. Oracle does not let you change it after the instance is created (not without the serial console, which is painful). **If you lose the matching private key, your only recovery is to terminate this instance and start over** — OCI's Ampere A1 capacity queue can take hours to give you another slot, so spend 10 seconds now making sure you have the right key.
 
 - Select **Paste public key**.
-- Paste your public key from Step 3 of this doc — all three parts, starts with `ssh-ed25519 `, ends with today's date. The matching private key lives on your client at `~/.ssh/id_ed25519` (Mac) or `%USERPROFILE%\.ssh\id_ed25519` (Windows); **don't delete or overwrite it**, ever.
+- Paste your public key from Step 3 of this doc — the whole line. It must start with `ssh-ed25519 ` (followed by one space) and the base64 middle section should be one unbroken run. The tail end (email, `user@host-date`, or nothing) is just a label and varies per generator. The matching private key lives on your client at `~/.ssh/id_ed25519` (Mac) or `%USERPROFILE%\.ssh\id_ed25519` (Windows); **don't delete or overwrite it**, ever.
 - **If you're going the Oracle-generated-keypair route** instead: pick **Generate a key pair for me**, then click BOTH **Save private key** AND **Save public key** before clicking Next. **Oracle will not let you re-download the private key later** — if you miss it, the instance is bricked and you start over. Move both files into `~/.ssh/` (Mac) or `%USERPROFILE%\.ssh\` (Windows) immediately, not Downloads/ (which your OS may clean out automatically).
 
 ### Wizard Step 4 — Storage
