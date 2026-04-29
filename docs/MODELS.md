@@ -29,7 +29,7 @@ OpenClaw routes a model slug by splitting on the first `/`. Everything before th
 
 If you see errors like `No API key found for provider "google"` or `Unknown model: zai/glm-4.5-air:free` in your logs, that's almost always a missing `openrouter/` prefix. Add it.
 
-Rule of thumb: if you're using the free OpenRouter catalog, **always prefix with `openrouter/`**. You only skip the prefix when you have a direct plan with the underlying provider (Anthropic, OpenAI, Google AI Studio, etc.) and have added its API key to OpenClaw separately.
+Rule of thumb: if you're using the free OpenRouter catalogue, **always prefix with `openrouter/`**. You only skip the prefix when you have a direct plan with the underlying provider (Anthropic, OpenAI, Google AI Studio, etc.) and have added its API key to OpenClaw separately.
 
 ---
 
@@ -105,7 +105,7 @@ Add `openrouter/google/gemma-2-9b-it:free` as a key in `agents.defaults.models`.
 
 **"No API key found for provider X"** — You're routing through a native provider plugin (e.g. `google/...` hits the Google plugin, which needs a Google key). Re-prefix the slug with `openrouter/` and it'll route through your OpenRouter key instead.
 
-**"Model available on OpenRouter but OpenClaw rejects it"** — OpenClaw's internal model catalog (under `~/.openclaw/agents/main/agent/models.json`) may not list the slug. Three options: (a) use a slug that IS in the catalog, (b) add the slug to the catalog by hand (see `FIELD-MANUAL.md` appendix), (c) wait for an OpenClaw update that expands the stock catalog.
+**"Model available on OpenRouter but OpenClaw rejects it"** — OpenClaw's internal model catalogue (under `~/.openclaw/agents/main/agent/models.json`) may not list the slug. Three options: (a) use a slug that IS in the catalogue, (b) add the slug to the catalogue by hand (see `FIELD-MANUAL.md` appendix), (c) wait for an OpenClaw update that expands the stock catalogue.
 
 **"Heartbeats are using the primary model, not my heartbeat override"** — Confirm you edited `agents.defaults.heartbeat.model`, not `agents.defaults.model.primary`. Restart the gateway. Then watch the next heartbeat run: `ssh my-oraclaw 'journalctl --user -u openclaw-gateway -f | grep "agent:main:main:heartbeat"'` — the `model=` field on the run-start line tells you which one fired.
 

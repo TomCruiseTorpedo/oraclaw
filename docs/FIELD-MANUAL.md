@@ -484,7 +484,7 @@ In this kit, Tailscale lives in **two places** under your single Tailscale accou
 
 Both will sit on the same tailnet. Once that's true, you can SSH to the VM using just its Tailscale hostname (no IP needed), and the dashboard is reachable at a `.ts.net` URL that only your authenticated devices can open.
 
-> **Why bother?** Because without Tailscale the VM either needs a public SSH port (attack-surface headache) or a VPN (much more setup). Tailscale gives you the "public access from my own devices, invisible to everyone else" flavor with zero networking config.
+> **Why bother?** Because without Tailscale the VM either needs a public SSH port (attack-surface headache) or a VPN (much more setup). Tailscale gives you the "public access from my own devices, invisible to everyone else" flavour with zero networking config.
 
 ### 5.1 Install Tailscale on the VM
 
