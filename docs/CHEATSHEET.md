@@ -64,13 +64,21 @@ journalctl  --user -u openclaw-gateway -n 50  # last 50 lines
 
 Prefer this command-line path over the `Update` button inside the dashboard. The dashboard button occasionally leaves the service stuck (the auto-recovery safety net catches it within a minute or two, but this path avoids the round-trip).
 
-**Run this on the VM** (one line — all three commands chained so you can't accidentally stop halfway):
+**Easiest — run this from your client (Mac or Linux):**
 
 ```bash
-source ~/.nvm/nvm.sh && npm install -g openclaw@latest && systemctl --user restart openclaw-gateway
+bash ~/oraclaw/scripts/update-openclaw.sh my-oraclaw
 ```
 
-If you'd rather see each step separately: `source ~/.nvm/nvm.sh` loads Node's version manager, `npm install -g openclaw@latest` pulls the newest release, and `systemctl --user restart openclaw-gateway` picks it up. The `&&` between them means "only run the next if the previous succeeded" — so an npm-install error stops you from restarting on a broken install.
+It backs up your config, pauses the watchdog, stops the gateway, runs `npm install -g openclaw@latest`, starts the gateway, polls `/health` for up to 240 seconds (a fresh-install cold start usually takes 60-90 s), then resumes the watchdog. Wait for `✓ gateway live` before closing the terminal.
+
+**Manual — run this on the VM** (one line — all six commands chained so you can't accidentally stop halfway; watchdog stop/start uses `;` so it's harmless if the watchdog isn't installed):
+
+```bash
+source ~/.nvm/nvm.sh && systemctl --user stop openclaw-gateway-watchdog.timer 2>/dev/null; systemctl --user stop openclaw-gateway && npm install -g openclaw@latest && systemctl --user start openclaw-gateway && systemctl --user start openclaw-gateway-watchdog.timer 2>/dev/null
+```
+
+**Why so many steps?** `npm install -g` overwrites files inside the OpenClaw package while it's installing. If the gateway is still running during that, it can crash mid-install — and the resulting cold restart takes 60-90 s while looking like a failure. Stopping the gateway first (and pausing the watchdog so it doesn't fight us) makes the upgrade clean and predictable.
 
 If you pressed the dashboard button and it didn't come back, see the banner at the top of this sheet.
 

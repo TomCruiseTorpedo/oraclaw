@@ -681,15 +681,37 @@ ssh my-oraclaw 'journalctl --user -u openclaw-gateway -f'
 
 ### Update OpenClaw (the safe way)
 
-**Prefer this command-line path over the `Update` button in the dashboard.** The dashboard button uses an in-process restart that occasionally leaves the gateway stuck. Your Oraclaw has an auto-recovery safety net that catches this within a minute or two, but the command-line path avoids it entirely. Keep a terminal open either way — it's your escape hatch if anything goes sideways.
+**Prefer the command-line path below over the `Update` button in the dashboard.** The dashboard button uses an in-process restart that occasionally leaves the gateway stuck. Your Oraclaw has an auto-recovery safety net that catches this within a minute or two, but the command-line path avoids it entirely. Keep a terminal open either way — it's your escape hatch if anything goes sideways.
+
+**Easiest — run this on your client (Mac or Linux):**
+
+```bash
+bash ~/oraclaw/scripts/update-openclaw.sh my-oraclaw
+```
+
+The script does six things in order: backs up your config, pauses the watchdog, stops the gateway, runs `npm install -g openclaw@latest`, starts the gateway, polls `/health` for up to 240 seconds, and resumes the watchdog. Wait for `✓ gateway live` before closing the terminal.
+
+**Manual — run these on the VM:**
+
+First, ssh into the VM:
 
 ```bash
 ssh my-oraclaw
-source ~/.nvm/nvm.sh
-npm install -g openclaw@latest
-systemctl --user restart openclaw-gateway
+```
+
+Then run the upgrade in one chained command (watchdog stop/start uses `;` so the line still works if the watchdog isn't installed):
+
+```bash
+source ~/.nvm/nvm.sh && systemctl --user stop openclaw-gateway-watchdog.timer 2>/dev/null; systemctl --user stop openclaw-gateway && npm install -g openclaw@latest && systemctl --user start openclaw-gateway && systemctl --user start openclaw-gateway-watchdog.timer 2>/dev/null
+```
+
+When that finishes, exit the SSH session:
+
+```bash
 exit
 ```
+
+**Why stop the gateway first?** `npm install -g` overwrites files inside the OpenClaw package while it's installing. If the gateway is still running, it crashes mid-install on a missing-file error — and the resulting cold restart takes 60-90 seconds while looking like a failure. Stopping the gateway first (and pausing the watchdog so it doesn't try to "help" by restarting it mid-install) makes the upgrade clean and predictable.
 
 ### If you did click the dashboard Update button and it broke
 

@@ -58,7 +58,7 @@ Pair with:
 | Firewall status | `sudo ufw status` |
 | fail2ban status | `sudo fail2ban-client status sshd` |
 | Rotate gateway token | `bash ~/oraclaw/scripts/rotate-gateway-token.sh` |
-| Update OpenClaw (safe path) | `source ~/.nvm/nvm.sh && npm install -g openclaw@latest && systemctl --user restart openclaw-gateway` |
+| Update OpenClaw (safe path) | From client (preferred): `bash ~/oraclaw/scripts/update-openclaw.sh <ssh-alias>`. On the VM: `source ~/.nvm/nvm.sh && systemctl --user stop openclaw-gateway-watchdog.timer 2>/dev/null; systemctl --user stop openclaw-gateway && npm install -g openclaw@latest && systemctl --user start openclaw-gateway && systemctl --user start openclaw-gateway-watchdog.timer 2>/dev/null`. **Stop-first matters**: `npm install -g` overwrites files in place; a running gateway crashes mid-install and the resulting cold restart takes 60-90 s instead of 16 s. The script also pauses the watchdog so it cannot interrupt that bootstrap. |
 | Recover gateway after dashboard-Update hang | `bash ~/oraclaw/scripts/recover-gateway.sh my-oraclaw` (from client) or `systemctl --user restart openclaw-gateway` (on VM) |
 | Watchdog state | `journalctl --user -t openclaw-watchdog --since "1 hour ago"` |
 
