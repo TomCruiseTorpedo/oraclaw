@@ -58,10 +58,12 @@ MODELS=(
 )
 PRIMARY_MODEL="openrouter/nvidia/nemotron-3-super-120b-a12b:free"
 
-# Heartbeat uses a smaller, faster model than the main chain.  Heartbeats
-# fire far more often than user-initiated work; a 3B free model here vs.
-# the 120B main-chain fallback is a ~100× cost difference.
-HEARTBEAT_MODEL="openrouter/meta-llama/llama-3.2-3b-instruct:free"
+# Heartbeat uses a smaller / cheaper model than the primary. Heartbeats
+# fire far more often than user-initiated work, so every dollar saved on
+# the heartbeat lane scales. Verify the slug is still on the OpenRouter
+# free tier (https://openrouter.ai/collections/free-models) before
+# installing.
+HEARTBEAT_MODEL="openrouter/z-ai/glm-4.5-air:free"
 
 # ── Pretty output ─────────────────────────────────────────────────────────────
 BOLD='\033[1m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; RED='\033[0;31m'; NC='\033[0m'
