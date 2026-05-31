@@ -691,6 +691,12 @@ bash ~/oraclaw/scripts/update-openclaw.sh my-oraclaw
 
 The script does six things in order: backs up your config, pauses the watchdog, stops the gateway, runs `npm install -g openclaw@latest`, starts the gateway, polls `/health` for up to 240 seconds, and resumes the watchdog. Wait for `✓ gateway live` before closing the terminal.
 
+**Built-in supply-chain protection (why the script sometimes refuses to update).** Recent attacks have slipped malicious code into popular packages for a short window before the registry catches it. To protect you, the script:
+
+- **Pins npm** to a known-good version instead of always grabbing the newest.
+- **Waits out new releases:** it refuses to install an OpenClaw version less than **5 days old**, so a tampered release gets caught and pulled before it reaches your VM. If you genuinely need a same-day security fix, add `--force` (e.g. `bash ~/oraclaw/scripts/update-openclaw.sh --force my-oraclaw`).
+- **Audits after installing:** runs `npm audit` and checks package signatures, and warns you if anything looks off.
+
 **Manual — run these on the VM:**
 
 First, ssh into the VM:
