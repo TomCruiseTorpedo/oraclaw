@@ -693,7 +693,7 @@ The script does six things in order: backs up your config, pauses the watchdog, 
 
 **Built-in supply-chain protection (why the script sometimes refuses to update).** Recent attacks have slipped malicious code into popular packages for a short window before the registry catches it. To protect you, the script:
 
-- **Pins npm** to a known-good version instead of always grabbing the newest.
+- **Keeps npm current.** npm itself is first-party and low-risk (no install scripts), so it's kept up to date rather than frozen — the protections here are for OpenClaw's dependency tree, not npm.
 - **Waits out new releases:** it refuses to install an OpenClaw version less than **5 days old**, so a tampered release gets caught and pulled before it reaches your VM. If you genuinely need a same-day security fix, add `--force` (e.g. `bash ~/oraclaw/scripts/update-openclaw.sh --force my-oraclaw`).
 - **Audits after installing:** runs `npm audit` and checks package signatures, and warns you if anything looks off.
 

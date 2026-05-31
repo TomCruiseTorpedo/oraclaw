@@ -17,12 +17,17 @@
 #      installed at day-zero, before advisories / registry takedowns catch it
 #   1. pause the user-level watchdog timer (so it doesn't fight us)
 #   2. stop the gateway service cleanly
-#   3. pin npm, then npm install -g openclaw@latest (no running process to crash)
+#   3. update npm to latest, then npm install -g openclaw@latest
 #   4. start the gateway service
 #   5. poll /health for up to 240 seconds (fresh-install cold start
 #      stages bundled runtime deps — usually 60-90 s on Ampere A1)
 #   6. post-install npm audit + signature check (advisory)
 #   7. resume the watchdog timer (always, even if a step failed)
+#
+# Why npm@latest (not a pin): npm is first-party (npm Inc / GitHub), has no
+# install scripts, and is heavily monitored — so it is kept current rather than
+# frozen (a pin only goes stale and misses npm's own security fixes). The soak
+# gate is reserved for the openclaw dependency tree, where day-zero risk lives.
 #
 # Run from your client (Mac or Linux). For Windows, use the manual
 # steps in CHEATSHEET.md -> "Update OpenClaw" instead.
@@ -33,7 +38,6 @@
 
 set -euo pipefail
 
-NPM_PIN="11.16.0"   # pinned npm — bump deliberately after review, never @latest
 SOAK_DAYS=5         # supply-chain soak window for openclaw@latest (days)
 
 FORCE=0
@@ -47,7 +51,7 @@ for arg in "$@"; do
     esac
 done
 : "${NODE:?usage: $0 [--force] <ssh-alias>}"
-echo "[update-oraclaw] target: $NODE  (npm pin=$NPM_PIN, soak=${SOAK_DAYS}d, force=$FORCE)"
+echo "[update-oraclaw] target: $NODE  (npm=latest, soak=${SOAK_DAYS}d, force=$FORCE)"
 
 PAYLOAD=$(mktemp -t oraclaw-update.XXXXXX)
 REMOTE_PAYLOAD="/tmp/oraclaw-update.$$.sh"
@@ -58,8 +62,7 @@ cat > "$PAYLOAD" <<'PAYLOAD_EOF'
 set -euo pipefail
 
 FORCE="${1:-0}"
-NPM_PIN="${2:-11.16.0}"
-SOAK_DAYS="${3:-5}"
+SOAK_DAYS="${2:-5}"
 
 export NVM_DIR="$HOME/.nvm"
 # shellcheck disable=SC1091
@@ -124,8 +127,8 @@ fi
 echo "[inner] stopping gateway…"
 systemctl --user stop openclaw-gateway
 
-echo "[inner] pinning npm → ${NPM_PIN} …"
-npm install -g "npm@${NPM_PIN}" 2>&1 | tail -2
+echo "[inner] updating npm → latest …"
+npm install -g npm@latest 2>&1 | tail -2
 
 echo "[inner] npm install -g openclaw@latest …"
 npm install -g openclaw@latest 2>&1 | tail -5
@@ -181,4 +184,4 @@ PAYLOAD_EOF
 chmod +x "$PAYLOAD"
 echo "[update-oraclaw] staging payload → $NODE:$REMOTE_PAYLOAD"
 scp -q "$PAYLOAD" "$NODE:$REMOTE_PAYLOAD"
-ssh -t "$NODE" "bash $REMOTE_PAYLOAD $FORCE $NPM_PIN $SOAK_DAYS"
+ssh -t "$NODE" "bash $REMOTE_PAYLOAD $FORCE $SOAK_DAYS"

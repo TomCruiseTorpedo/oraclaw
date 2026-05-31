@@ -72,7 +72,7 @@ bash ~/oraclaw/scripts/update-openclaw.sh my-oraclaw
 
 It backs up your config, pauses the watchdog, stops the gateway, runs `npm install -g openclaw@latest`, starts the gateway, polls `/health` for up to 240 seconds (a fresh-install cold start usually takes 60-90 s), then resumes the watchdog. Wait for `✓ gateway live` before closing the terminal.
 
-**Built-in supply-chain protection.** The script pins npm to a known-good version and won't install a brand-new OpenClaw release until it's at least **5 days old** — that gives the npm registry time to catch and pull a tampered release before it reaches you. It also runs a security audit (`npm audit`) after installing. If you ever need a same-day security release, add `--force`:
+**Built-in supply-chain protection.** The script keeps npm current and won't install a brand-new OpenClaw release until it's at least **5 days old** — that gives the npm registry time to catch and pull a tampered release before it reaches you. It also runs a security audit (`npm audit`) after installing. If you ever need a same-day security release, add `--force`:
 
 ```bash
 bash ~/oraclaw/scripts/update-openclaw.sh --force my-oraclaw
