@@ -119,6 +119,20 @@ if [ -f "$CFG" ]; then
     echo "[inner] config backup: ${CFG}.pre-upgrade.${STAMP}"
 fi
 
+# Ensure the configured web_search provider's plugin is enabled. OpenClaw 2026.6.x
+# made web_search plugin-based: a provider named in tools.web.search.provider must
+# have plugins.entries.<provider>.enabled=true, or the gateway refuses to boot
+# ("unknown web_search provider"). Set it now on the current (pre-upgrade) version,
+# where the config is still valid and the key is forward-compatible, so the
+# upgraded gateway boots clean. Uses openclaw's own config writer (the config is
+# JSON5 — do not hand-edit it with jq). Does not touch plugins.allow. Idempotent.
+PROV=$(openclaw config get tools.web.search.provider 2>/dev/null | tr -dc 'a-z0-9_-' || true)
+if [ -n "${PROV:-}" ] && [ "$PROV" != "null" ]; then
+    openclaw config set "plugins.entries.${PROV}.enabled" true >/dev/null 2>&1 \
+        && echo "[inner] ensured web_search plugin '${PROV}' enabled (2026.6.x plugin model)" \
+        || echo "[inner] note: could not pre-enable web_search plugin '${PROV}' (older CLI?); continuing" >&2
+fi
+
 echo "[inner] pausing watchdog timer…"
 if systemctl --user stop openclaw-gateway-watchdog.timer 2>/dev/null; then
     WATCHDOG_PAUSED=1

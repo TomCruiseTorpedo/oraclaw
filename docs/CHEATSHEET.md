@@ -111,6 +111,8 @@ openclaw devices approve <request-id>   # approve a browser
 ~/.openclaw/cron/jobs.json                   # scheduled heartbeat(s)
 ```
 
+> **Editing the config safely.** `openclaw.json` may contain comments / trailing commas (JSON5), which strict-JSON tools like `jq` can fail to parse — and `jq '…' file > file` would then overwrite it with an empty file. Use OpenClaw's own validated editor instead: `openclaw config get <path>` to read, `openclaw config set <path> <value>` to write (reads + writes JSON5 safely, validates before saving). Restart the gateway afterwards.
+
 ## Health Checks
 
 ```bash
@@ -207,6 +209,7 @@ systemctl --user restart openclaw-gateway
 | VM unreachable | OCI console → Instance status |
 | "Connection refused" | `curl -I http://127.0.0.1:18789/` on the VM |
 | Disk full | `df -h; du -sh ~/.openclaw/*` |
+| `unknown web_search provider` after an update | web_search is plugin-based in 2026.6.x — enable the provider's plugin: `ssh my-oraclaw 'openclaw config set plugins.entries.duckduckgo.enabled true'`, then restart the gateway |
 
 ## Asking an AI for help
 

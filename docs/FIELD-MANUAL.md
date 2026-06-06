@@ -860,6 +860,16 @@ Nine times out of ten this means the slug is missing its `openrouter/` prefix. `
 
 The fallback chain automatically tries the next model when one fails. Full guide to how the chain works + how to swap any slot: **[docs/MODELS.md](MODELS.md)**.
 
+### "Web search isn't working" or `unknown web_search provider` after an update
+
+As of OpenClaw 2026.6.x, web search is provided by a plugin that ships bundled but **disabled by default**. If `tools.web.search.provider` names a provider whose plugin isn't enabled, the gateway refuses to start with `unknown web_search provider`. Enable the bundled DuckDuckGo provider (free, no API key) and restart:
+
+```bash
+ssh my-oraclaw 'openclaw config set plugins.entries.duckduckgo.enabled true'
+```
+
+Edit `openclaw.json` only with `openclaw config set` / `openclaw config get` (they read + write its JSON5 safely) — not `jq`, which can fail to parse a JSON5 config and overwrite it with an empty file.
+
 ### "Dashboard shows 502 after clicking Update"
 
 Wait a beat — auto-recovery usually kicks in within 60–90 seconds. If it doesn't:
