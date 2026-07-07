@@ -52,8 +52,8 @@ SWAP_GB="${SWAP_GB:-}"
 MODELS=(
   "openrouter/nvidia/nemotron-3-super-120b-a12b:free"
   "openrouter/google/gemma-4-31b-it:free"
-  "openrouter/minimax/minimax-m2.5:free"
-  "openrouter/z-ai/glm-4.5-air:free"
+  "openrouter/qwen/qwen3-next-80b-a3b-instruct:free"
+  "openrouter/google/gemma-4-26b-a4b-it:free"
   "openrouter/qwen/qwen3-coder:free"
 )
 PRIMARY_MODEL="openrouter/nvidia/nemotron-3-super-120b-a12b:free"
@@ -63,7 +63,7 @@ PRIMARY_MODEL="openrouter/nvidia/nemotron-3-super-120b-a12b:free"
 # the heartbeat lane scales. Verify the slug is still on the OpenRouter
 # free tier (https://openrouter.ai/collections/free-models) before
 # installing.
-HEARTBEAT_MODEL="openrouter/z-ai/glm-4.5-air:free"
+HEARTBEAT_MODEL="openrouter/google/gemma-4-26b-a4b-it:free"
 
 # ── Pretty output ─────────────────────────────────────────────────────────────
 BOLD='\033[1m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; RED='\033[0;31m'; NC='\033[0m'

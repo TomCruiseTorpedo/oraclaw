@@ -15,8 +15,8 @@ This page explains the three "roles" a model can play in your OpenClaw setup, wh
 Every agent job runs through one of three model slots:
 
 - **Primary** — the model your agent uses for real work: chat replies, tool calls, reasoning. This is the one you care about most. In this kit: `openrouter/nvidia/nemotron-3-super-120b-a12b:free`.
-- **Fallbacks** — an ordered list tried in sequence if the primary fails (timeout, rate limit, model taken down, upstream auth error). The first one that answers wins. In this kit, the chain is: gemma → minimax → glm → qwen.
-- **Heartbeat** — the model that runs the background cron heartbeat jobs (the installer schedules these every 6 hours). These should be cheap and fast — they're not doing deep reasoning, just checking in. In this kit: `openrouter/z-ai/glm-4.5-air:free` (35B parameters — mid-sized, tool-use reliable; chosen for the heartbeat lane after the smaller Llama 3.2 3B Instruct started showing transient free-tier exhaustion).
+- **Fallbacks** — an ordered list tried in sequence if the primary fails (timeout, rate limit, model taken down, upstream auth error). The first one that answers wins. In this kit, the chain is: gemma-4-31b → qwen3-next-80b → gemma-4-26b → qwen3-coder.
+- **Heartbeat** — the model that runs the background cron heartbeat jobs (the installer schedules these every 6 hours). These should be cheap and fast — they're not doing deep reasoning, just checking in. In this kit: `openrouter/google/gemma-4-26b-a4b-it:free` (a 26B MoE with ~4B active parameters — cheap, fast, and tool-capable; it replaced `openrouter/z-ai/glm-4.5-air:free` on 2026-07-07 when that slug left the free tier).
 
 Configuration lives in `~/.openclaw/openclaw.json` under `agents.defaults`:
 
@@ -72,7 +72,7 @@ Rule of thumb: if you're using the free OpenRouter catalogue, **always prefix wi
 
 Same pattern, different keys: `openclaw config set agents.defaults.heartbeat.model "openrouter/<new-slug>"`, make sure the new slug appears in `agents.defaults.models` (same `--merge` command as above), then restart.
 
-Good heartbeat candidates share these traits: free on OpenRouter, tool-use capable, low-latency, and small *enough* to keep cost modest given the 10–100× heartbeat-vs-user-work cadence ratio. At time of writing, these work well: `openrouter/z-ai/glm-4.5-air:free` (35B — the current default; chosen for tool-use reliability after smaller models started showing transient free-tier exhaustion), `openrouter/google/gemma-2-9b-it:free`, `openrouter/qwen/qwen-2.5-7b-instruct:free`. Verify each one is still on the free collection (https://openrouter.ai/collections/free-models) before switching.
+Good heartbeat candidates share these traits: free on OpenRouter, tool-use capable, low-latency, and small *enough* to keep cost modest given the 10–100× heartbeat-vs-user-work cadence ratio. At time of writing, these work well: `openrouter/google/gemma-4-26b-a4b-it:free` (the current default — a 26B MoE with ~4B active parameters, the smallest tool-reliable footprint on the free tier right now) and `openrouter/qwen/qwen3-next-80b-a3b-instruct:free` (80B MoE, ~3B active). The free roster churns — two of this paragraph's previous suggestions vanished from the free tier within two months, so verify every candidate against the live collection (https://openrouter.ai/collections/free-models) before switching.
 
 You don't *have* to set a different heartbeat model from your primary — it's fine for both slots to point at the same slug. You just give up the cost optimization.
 
@@ -99,12 +99,12 @@ Nemotron is already in `agents.defaults.models` (it's a fallback), so no registr
 
 Before: `fallbacks` starts with gemma. After: add `"anthropic/claude-sonnet-4-6"` as the first entry, and add it as a key in `agents.defaults.models`. You'll also need `auth.profiles.anthropic:default` with an Anthropic API key — OpenClaw's doctor command walks you through this: `ssh my-oraclaw 'openclaw doctor'`.
 
-**Example 3 — swap heartbeat to gemma 9B:**
+**Example 3 — swap heartbeat after a free-tier removal (the 2026-07-07 case):**
 
-Before: `"heartbeat": { ..., "model": "openrouter/meta-llama/llama-3.2-3b-instruct:free" }`
-After: `"heartbeat": { ..., "model": "openrouter/google/gemma-2-9b-it:free" }`
+Before: `"heartbeat": { ..., "model": "openrouter/z-ai/glm-4.5-air:free" }` (slug dropped off the free tier)
+After: `"heartbeat": { ..., "model": "openrouter/google/gemma-4-26b-a4b-it:free" }`
 
-Add `openrouter/google/gemma-2-9b-it:free` as a key in `agents.defaults.models`. Save, restart. Next heartbeat fires with the new model.
+Add `openrouter/google/gemma-4-26b-a4b-it:free` as a key in `agents.defaults.models` (same `--merge` pattern as above). Save, restart. Next heartbeat fires with the new model.
 
 ---
 
