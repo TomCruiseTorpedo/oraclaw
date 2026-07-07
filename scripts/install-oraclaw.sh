@@ -11,7 +11,7 @@
 #    - Tailscale + tailscale serve (HTTPS dashboard, tailnet-only)
 #    - OpenClaw via npm, running as user `ubuntu`
 #    - systemd user service with hardening drop-in + Restart=always
-#    - one heartbeat cron job every 6 hours (isolated session)
+#    - one heartbeat cron job every 6 hours (posts into the main session)
 #    - update-safety watchdog: 60s /health probe, auto-restart on 2 fails
 #    - SSH hardening, fail2ban, UFW default-deny, unattended-upgrades
 #
@@ -377,11 +377,15 @@ cat > "$HOME/.config/systemd/user/openclaw-gateway.service" <<SVC
 [Unit]
 Description=OpenClaw Gateway
 After=network-online.target tailscaled.service
+# Absorb pathological update loops; the watchdog (installed next) catches
+# the rare case where systemd still bails after burst exhaustion.
+StartLimitIntervalSec=300
+StartLimitBurst=20
 
 [Service]
 Type=simple
 EnvironmentFile=%h/.openclaw/.env
-ExecStart=%h/.nvm/versions/node/v${NODE_VERSION}/bin/node %h/.nvm/versions/node/v${NODE_VERSION}/lib/node_modules/openclaw/dist/entry.js gateway --port 18789
+ExecStart=%h/.nvm/versions/node/v${NODE_VERSION}/bin/node %h/.nvm/versions/node/v${NODE_VERSION}/lib/node_modules/openclaw/dist/index.js gateway --port 18789
 
 # Restart=always (not on-failure) so the in-process SIGUSR1 supervisor
 # restart — triggered by the Control UI "Update" button — is caught by
@@ -404,12 +408,6 @@ RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
 
 [Install]
 WantedBy=default.target
-
-[Unit]
-# Absorb pathological update loops; the watchdog (installed next) catches
-# the rare case where systemd still bails after burst exhaustion.
-StartLimitIntervalSec=300
-StartLimitBurst=20
 SVC
 
 # ── 8b. Update-safety watchdog (belt-and-suspenders to Restart=always) ──────
@@ -473,7 +471,7 @@ systemctl --user restart openclaw-gateway.service
 say "   waiting for gateway…"
 for i in $(seq 1 30); do
   sleep 2
-  if curl -sf -o /dev/null http://127.0.0.1:18789/; then
+  if curl -sf -m 5 -o /dev/null http://127.0.0.1:18789/health; then
     say "   gateway ready"
     break
   fi

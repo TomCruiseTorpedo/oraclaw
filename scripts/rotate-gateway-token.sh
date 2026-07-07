@@ -80,7 +80,7 @@ systemctl --user restart openclaw-gateway
 say "Waiting for gateway HTTP 200…"
 for i in $(seq 1 30); do
   sleep 2
-  CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:18789/ 2>/dev/null || echo 000)
+  CODE=$(curl -s -m 3 -o /dev/null -w "%{http_code}" http://127.0.0.1:18789/health 2>/dev/null || echo 000)
   if [[ "$CODE" == "200" ]]; then
     say "Gateway ready after $((i * 2))s"
     break
