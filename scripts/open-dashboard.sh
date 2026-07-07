@@ -49,7 +49,9 @@ echo -e "${CYAN}Fetching dashboard URL + token from ${BOLD}$VM_HOST${NC}${CYAN}â
 # One SSH call fetches both URL and token, newline-separated.
 INFO=$(ssh -o BatchMode=yes -o ConnectTimeout=5 "$VM_HOST" '
 URL=$(cat ~/.openclaw/dashboard-url 2>/dev/null || true)
-TOKEN=$(jq -r .gateway.auth.token ~/.openclaw/openclaw.json 2>/dev/null || true)
+# openclaw.json is JSON5 â€” read via the CLI, never jq on the file. tr strips
+# the JSON string quotes (token is plain hex).
+TOKEN=$({ export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"; openclaw config get gateway.auth.token --json 2>/dev/null | tr -d "\""; } || true)
 printf "%s\n%s\n" "$URL" "$TOKEN"
 ' 2>/dev/null || true)
 

@@ -14,10 +14,12 @@
 #    bash ~/oraclaw/scripts/rotate-gateway-token.sh
 #
 #  What it does:
-#    1. Reads the current ~/.openclaw/openclaw.json (shows first 8 chars of old
-#       token, for sanity)
+#    1. Reads the current token via `openclaw config get` (shows first 8 chars
+#       of the old token, for sanity)
 #    2. Generates a new 48-character hex token via openssl
-#    3. Atomically updates openclaw.json with the new token
+#    3. Updates the token via `openclaw config set` — openclaw.json is JSON5
+#       (it may carry comments/trailing commas), so it must go through
+#       openclaw's own writer; a jq rewrite can truncate or corrupt it
 #    4. Restarts the gateway service
 #    5. Waits for the gateway to come back up healthy (HTTP 200)
 #    6. Prints the NEW token ONCE — save it to your password manager immediately
@@ -45,8 +47,17 @@ command -v jq >/dev/null      || die "jq not installed (sudo apt install jq)"
 command -v openssl >/dev/null || die "openssl not installed"
 [[ -f "$CFG" ]]               || die "openclaw.json not found at $CFG — has the VM installer run yet?"
 
+# The config file is JSON5 — jq cannot parse it, so all reads/writes below go
+# through the openclaw CLI (jq only parses the CLI's clean `--json` output).
+# nvm's PATH hook doesn't fire in non-interactive shells, so source it if needed.
+if ! command -v openclaw >/dev/null 2>&1; then
+  export NVM_DIR="$HOME/.nvm"
+  [[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
+fi
+command -v openclaw >/dev/null || die "openclaw CLI not found (checked PATH + nvm)"
+
 # ── 1. Read current token (show first 8 chars as a sanity check) ─────────────
-OLD=$(jq -r .gateway.auth.token "$CFG")
+OLD=$(openclaw config get gateway.auth.token --json | jq -r '.')
 [[ -n "$OLD" && "$OLD" != "null" ]] || die "could not read current token from $CFG"
 say "Current token (first 8 chars): ${OLD:0:8}…  (full token hidden)"
 
@@ -54,12 +65,12 @@ say "Current token (first 8 chars): ${OLD:0:8}…  (full token hidden)"
 NEW=$(openssl rand -hex 24)
 [[ ${#NEW} -eq 48 ]] || die "token generation failed (got ${#NEW} chars, expected 48)"
 
-# ── 3. Atomic update ─────────────────────────────────────────────────────────
-say "Updating $CFG"
-TMP=$(mktemp)
-jq ".gateway.auth.token = \"$NEW\"" "$CFG" > "$TMP"
-install -m 600 "$TMP" "$CFG"
-rm -f "$TMP"
+# ── 3. Update via openclaw's own JSON5-safe writer ───────────────────────────
+# The value is passed as an explicit JSON string ("--strict-json" + quotes) so
+# a token that happens to be all digits can't be reinterpreted as a number.
+say "Updating $CFG (via openclaw config set)"
+openclaw config set gateway.auth.token "\"$NEW\"" --strict-json \
+  || die "openclaw config set failed — token unchanged"
 
 # ── 4. Restart service ───────────────────────────────────────────────────────
 say "Restarting openclaw-gateway"
@@ -86,6 +97,6 @@ echo ""
 echo -e "${BOLD}NEW TOKEN:${NC}  ${CYAN}$NEW${NC}"
 echo ""
 echo -e "${BOLD}${YELLOW}✎ Save this to your password manager NOW.  This script will not show it again.${NC}"
-echo -e "   (If you lose it, re-read it with: ${BOLD}jq -r .gateway.auth.token $CFG${NC})"
+echo -e "   (If you lose it, re-read it with: ${BOLD}openclaw config get gateway.auth.token${NC})"
 echo ""
 echo -e "${BOLD}Next:${NC} in your browser, open the dashboard → click the ⚙ Settings gear → paste the new token → Save."

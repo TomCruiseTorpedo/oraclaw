@@ -42,7 +42,9 @@ Rule of thumb: if you're using the free OpenRouter catalogue, **always prefix wi
 ## Prerequisites to change a model
 
 - SSH access to your VM.
-- A text editor you're comfortable with (`nano`, `vim`, `micro`).
+- The `openclaw config` CLI — the config file is JSON5, so never hand-edit it or
+  drive it with jq/python; openclaw's own writer is the only safe path
+  (a jq rewrite can truncate it to an empty file and take the gateway down).
 - A restart of the gateway after editing — OpenClaw re-reads `openclaw.json` on service restart, not live.
 
 ---
@@ -51,21 +53,24 @@ Rule of thumb: if you're using the free OpenRouter catalogue, **always prefix wi
 
 1. Pick a new slug. Browse `https://openrouter.ai/collections/free-models` for free options. Confirm the model supports tool use (OpenClaw needs it) — most do; the model page says so.
 
-2. SSH in and open the config: `ssh my-oraclaw 'nano ~/.openclaw/openclaw.json'`.
+2. SSH in (`ssh my-oraclaw`) and make two edits via the CLI:
 
-3. Make two edits:
-   - Change `agents.defaults.model.primary` to the new slug (with `openrouter/` prefix).
-   - Add the new slug as a key in `agents.defaults.models` if it isn't already.
+   ```bash
+   openclaw config set agents.defaults.model.primary "openrouter/<new-slug>"
+   openclaw config set agents.defaults.models '{"openrouter/<new-slug>": {}}' --strict-json --merge
+   ```
 
-4. Save, then restart: `ssh my-oraclaw 'systemctl --user restart openclaw-gateway'`.
+   (`--merge` adds the key to the protected `agents.defaults.models` map without touching the existing entries.)
 
-5. Watch the first response come through. If it errors with `Unknown model`, check you got the slug exactly right (OpenRouter's slugs are case-sensitive and the `:free` suffix matters).
+3. Restart: `systemctl --user restart openclaw-gateway`.
+
+4. Watch the first response come through. If it errors with `Unknown model`, check you got the slug exactly right (OpenRouter's slugs are case-sensitive and the `:free` suffix matters).
 
 ---
 
 ## How to swap the heartbeat model
 
-Same pattern, different keys. Edit `agents.defaults.heartbeat.model` and make sure the new slug appears in `agents.defaults.models`. Restart.
+Same pattern, different keys: `openclaw config set agents.defaults.heartbeat.model "openrouter/<new-slug>"`, make sure the new slug appears in `agents.defaults.models` (same `--merge` command as above), then restart.
 
 Good heartbeat candidates share these traits: free on OpenRouter, tool-use capable, low-latency, and small *enough* to keep cost modest given the 10–100× heartbeat-vs-user-work cadence ratio. At time of writing, these work well: `openrouter/z-ai/glm-4.5-air:free` (35B — the current default; chosen for tool-use reliability after smaller models started showing transient free-tier exhaustion), `openrouter/google/gemma-2-9b-it:free`, `openrouter/qwen/qwen-2.5-7b-instruct:free`. Verify each one is still on the free collection (https://openrouter.ai/collections/free-models) before switching.
 

@@ -808,7 +808,7 @@ Mosh survives Wi-Fi changes and lid-close. Tmux keeps your work going even if th
 
 ### "The dashboard loads but shows 'Unauthorized'"
 
-- Token wrong or missing. Click ⚙ → paste the token from when you installed (if lost: `ssh my-oraclaw 'jq -r .gateway.auth.token ~/.openclaw/openclaw.json'`).
+- Token wrong or missing. Click ⚙ → paste the token from when you installed (if lost: `ssh my-oraclaw '. ~/.nvm/nvm.sh && openclaw config get gateway.auth.token'`).
 
 ### "The dashboard shows 'Device pairing required'"
 
@@ -844,8 +844,11 @@ If the VM itself is unreachable: OCI console → Instances → check status. Res
 
 ### "I forgot the dashboard token"
 
+The config is JSON5 — read it through the openclaw CLI, not jq (`. ~/.nvm/nvm.sh`
+puts the CLI on PATH in a non-interactive SSH shell):
+
 ```bash
-ssh my-oraclaw 'jq -r .gateway.auth.token ~/.openclaw/openclaw.json'
+ssh my-oraclaw '. ~/.nvm/nvm.sh && openclaw config get gateway.auth.token'
 ```
 
 ### "I want to rotate the dashboard token (suspect it leaked)"

@@ -59,7 +59,8 @@ Write-Host "Fetching dashboard URL + token from $VmHost..." -ForegroundColor Cya
 
 $remote = @'
 URL=$(cat ~/.openclaw/dashboard-url 2>/dev/null || true)
-TOKEN=$(jq -r .gateway.auth.token ~/.openclaw/openclaw.json 2>/dev/null || true)
+# openclaw.json is JSON5 — read via the CLI, never jq on the file.
+TOKEN=$({ export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"; openclaw config get gateway.auth.token --json 2>/dev/null | tr -d '"'; } || true)
 printf "%s\n%s\n" "$URL" "$TOKEN"
 '@
 

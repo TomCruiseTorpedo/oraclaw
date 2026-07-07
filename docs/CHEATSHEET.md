@@ -41,7 +41,7 @@ mosh <vm-name> -- tmux new-session -A -s main   # Persistent (survives Wi-Fi / l
 
 ```
 URL:    https://<vm-name>.<tailnet>.ts.net
-Token:  jq -r .gateway.auth.token ~/.openclaw/openclaw.json   # on the VM
+Token:  openclaw config get gateway.auth.token   # on the VM
 ```
 
 ```bash
@@ -150,15 +150,18 @@ If either check above shows something unexpected, re-run `install-oraclaw.sh` on
 
 ## Model Chain
 
+The config is JSON5 — always read/write it through `openclaw config`, never jq
+or a hand edit (a jq rewrite can truncate it to an empty file → outage).
+
 ```bash
 # Which model is primary?
-jq -r '.agents.defaults.model.primary' ~/.openclaw/openclaw.json
+openclaw config get agents.defaults.model.primary
 
 # Full chain (primary + fallbacks in order)
-jq '.agents.defaults.model' ~/.openclaw/openclaw.json
+openclaw config get agents.defaults.model
 
 # Heartbeat model (what the background check-ins use)
-jq '.agents.defaults.heartbeat' ~/.openclaw/openclaw.json
+openclaw config get agents.defaults.heartbeat
 ```
 
 Full guide — what each slot is for, why every slug starts with `openrouter/`, and how to swap one safely: **[docs/MODELS.md](MODELS.md)**.
@@ -201,7 +204,7 @@ systemctl --user restart openclaw-gateway
 | Symptom | Command |
 |---------|---------|
 | Dashboard shows 502 after clicking Update | `ssh my-oraclaw 'systemctl --user restart openclaw-gateway'` (or the `recover-gateway.sh`/`.ps1` helper) |
-| Dashboard shows "unauthorized" | `jq -r .gateway.auth.token ~/.openclaw/openclaw.json` |
+| Dashboard shows "unauthorized" | `openclaw config get gateway.auth.token` |
 | Dashboard won't load | `systemctl --user status openclaw-gateway` |
 | Reply never comes | `journalctl --user -u openclaw-gateway -n 30` |
 | "Unknown model" / model not found | See [docs/MODELS.md](MODELS.md) — usually a missing `openrouter/` prefix |
