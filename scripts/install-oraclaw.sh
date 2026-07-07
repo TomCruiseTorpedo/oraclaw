@@ -32,7 +32,7 @@ set -euo pipefail
 
 # ── Config — override any of these via environment variables ──────────────────
 NODE_VERSION="${NODE_VERSION:-24.18.0}"
-NVM_VERSION="${NVM_VERSION:-v0.40.4}"
+NVM_VERSION="${NVM_VERSION:-v0.40.5}"
 ASSISTANT_NAME="${ASSISTANT_NAME:-}"
 TAILSCALE_AUTH_KEY="${TAILSCALE_AUTH_KEY:-}"
 OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}"
