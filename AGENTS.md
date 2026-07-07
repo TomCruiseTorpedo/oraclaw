@@ -24,7 +24,7 @@ Pair with:
 - Host: Oracle Cloud "Always Free" VM — Ubuntu 24.04 Minimal, aarch64 (Ampere A1)
 - Default sizing: 1 instance × 2 OCPU / 12 GB RAM / 100 GB boot / 120 VPUs / 8 GB swap (leaves ~50% of the Always-Free tier as headroom for re-deploys or a future second Claw)
 - OpenClaw: `npm install -g openclaw@latest` under user `ubuntu`
-- Node: 24.15.0 via nvm at `~/.nvm/versions/node/v24.15.0/`
+- Node: 24.18.0 via nvm at `~/.nvm/versions/node/v24.18.0/`
 - Service: systemd **USER** unit `openclaw-gateway.service` — use `systemctl --user`, NOT `sudo systemctl`
 - Gateway: binds `127.0.0.1:18789` (loopback only, never public)
 - Dashboard: `sudo tailscale serve --bg --https=443 http://127.0.0.1:18789` at `https://<vm>.<tailnet>.ts.net`

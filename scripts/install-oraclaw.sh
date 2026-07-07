@@ -7,7 +7,7 @@
 #
 #    - base packages + apt upgrade for pending security patches
 #    - swap (auto-sized to ~2/3 of detected RAM)
-#    - nvm + Node.js 24.15.0
+#    - nvm + Node.js 24.18.0
 #    - Tailscale + tailscale serve (HTTPS dashboard, tailnet-only)
 #    - OpenClaw via npm, running as user `ubuntu`
 #    - systemd user service with hardening drop-in + Restart=always
@@ -31,7 +31,7 @@
 set -euo pipefail
 
 # ── Config — override any of these via environment variables ──────────────────
-NODE_VERSION="${NODE_VERSION:-24.15.0}"
+NODE_VERSION="${NODE_VERSION:-24.18.0}"
 NVM_VERSION="${NVM_VERSION:-v0.40.4}"
 ASSISTANT_NAME="${ASSISTANT_NAME:-}"
 TAILSCALE_AUTH_KEY="${TAILSCALE_AUTH_KEY:-}"

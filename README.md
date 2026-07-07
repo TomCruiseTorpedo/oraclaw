@@ -84,7 +84,7 @@ When it finishes, open the dashboard URL in your browser and paste the login tok
 
 ## What gets installed on your VM
 
-- Node.js 24.15.0 (via nvm)
+- Node.js 24.18.0 (via nvm)
 - OpenClaw, running as a `systemd` user service, bound to `127.0.0.1:18789` only — never exposed to the public internet
 - Tailscale with `tailscale serve --https=443` (tailnet-only HTTPS dashboard, no public port)
 - UFW firewall (default-deny incoming; allows only `22/tcp` for SSH and all traffic on `tailscale0`)
