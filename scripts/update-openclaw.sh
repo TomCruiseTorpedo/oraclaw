@@ -21,7 +21,9 @@
 #   4. start the gateway service
 #   5. poll /health for up to 240 seconds (fresh-install cold start
 #      stages bundled runtime deps — usually 60-90 s on Ampere A1)
-#   6. post-install npm audit + signature check (advisory)
+#   6. post-install npm audit + signature check (advisory); on health
+#      failure instead: AUTO-ROLLBACK to the pre-upgrade version and
+#      re-poll (exit 1 either way — a rolled-back update still failed)
 #   7. resume the watchdog timer (always, even if a step failed)
 #
 # Why npm@latest (not a pin): npm is first-party (npm Inc / GitHub), has no
@@ -31,6 +33,11 @@
 #
 # Run from your client (Mac or Linux). For Windows, use the manual
 # steps in CHEATSHEET.md -> "Update OpenClaw" instead.
+#
+# Relation to upstream `openclaw update`: the upstream updater brings a staged
+# npm install and `openclaw doctor` migrations, but no soak gate, no watchdog
+# pause, no post-install audit, no auto-rollback. This script exists for those
+# four safety nets.
 #
 # Usage: bash update-openclaw.sh [--force] <ssh-alias>
 #   e.g. bash ~/oraclaw/scripts/update-openclaw.sh my-oraclaw
@@ -191,7 +198,32 @@ fi
 
 echo "[inner] ✗ gateway did not reach HTTP 200 within 240 s." >&2
 echo "[inner] config backup is at ${CFG}.pre-upgrade.${STAMP}" >&2
-echo "[inner] to roll back binaries: source ~/.nvm/nvm.sh && npm install -g openclaw@${OLD}" >&2
+
+# Auto-rollback: reinstall the pre-upgrade version and re-poll /health.
+# ${OLD_VER} is the parsed bare version (${OLD} is the whole banner line and
+# would break the npm spec). Every step is best-effort (|| true) — set -e
+# must not abort before the final report; the poll decides.
+if [ -z "$OLD_VER" ]; then
+    echo "[inner] cannot auto-roll back — pre-upgrade version unknown." >&2
+    echo "[inner] manual: source ~/.nvm/nvm.sh && npm install -g openclaw@<version> && systemctl --user restart openclaw-gateway" >&2
+    exit 1
+fi
+echo "[inner] AUTO-ROLLBACK: reinstalling openclaw@${OLD_VER}…" >&2
+systemctl --user stop openclaw-gateway 2>/dev/null || true
+npm install -g "openclaw@${OLD_VER}" 2>&1 | tail -3 || echo "[inner] WARN: rollback npm install reported errors" >&2
+systemctl --user start openclaw-gateway || true
+echo "[inner] waiting for /health → 200 after rollback (budget 240 s)…" >&2
+for i in $(seq 1 48); do
+    sleep 5
+    code=$(curl -sS -m 3 -o /dev/null -w '%{http_code}' http://127.0.0.1:18789/health 2>/dev/null || echo 000)
+    if [ "$code" = "200" ]; then
+        echo "[inner] ✓ rolled back to ${OLD_VER} and healthy — the update FAILED and was reverted." >&2
+        exit 1
+    fi
+done
+echo "[inner] ✗ ROLLBACK ALSO UNHEALTHY — gateway is down." >&2
+echo "[inner] inspect: journalctl --user -u openclaw-gateway -n 100 --no-pager" >&2
+echo "[inner] config backup: ${CFG}.pre-upgrade.${STAMP}" >&2
 exit 1
 PAYLOAD_EOF
 
