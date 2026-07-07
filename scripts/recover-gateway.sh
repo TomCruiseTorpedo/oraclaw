@@ -20,14 +20,8 @@
 set -euo pipefail
 NODE="${1:?usage: $0 <ssh-alias>}"
 
-if ssh -o BatchMode=yes -o ConnectTimeout=5 "$NODE" 'test -d /home/openclaw' 2>/dev/null; then
-  OC_USER=openclaw
-  NEEDS_SUDO=1
-else
-  OC_USER=ubuntu
-  NEEDS_SUDO=0
-fi
-echo "[recover] target: $NODE  user: $OC_USER"
+# Oraclaw installs run as the ubuntu user you SSH in as — no sudo needed.
+echo "[recover] target: $NODE  user: ubuntu"
 
 # Probe /health via SSH to the VM, hitting localhost:18789 on the VM.
 probe() {
@@ -61,11 +55,7 @@ chmod +x "$PAYLOAD"
 
 scp -q "$PAYLOAD" "$NODE:$REMOTE_PAYLOAD"
 
-if [ "$NEEDS_SUDO" = "1" ]; then
-  ssh -t "$NODE" "sudo chown $OC_USER:$OC_USER $REMOTE_PAYLOAD && sudo -u $OC_USER bash $REMOTE_PAYLOAD"
-else
-  ssh -t "$NODE" "bash $REMOTE_PAYLOAD"
-fi
+ssh -t "$NODE" "bash $REMOTE_PAYLOAD"
 
 echo "[recover] polling /health (budget 120s)…"
 for i in $(seq 1 24); do
@@ -82,11 +72,11 @@ cat >&2 <<ESC_EOF
 [recover] ✗ gateway did not reach HTTP 200 within 120s.
 
 Escalation steps:
-  1) Journal (last 5 min for the service user):
-       ssh $NODE 'OC_UID=\$(id -u $OC_USER); sudo -n journalctl _UID=\$OC_UID --since "5 minutes ago" --no-pager | tail -60'
+  1) Journal (last 5 min):
+       ssh $NODE 'journalctl --user -u openclaw-gateway --since "5 minutes ago" --no-pager | tail -60'
 
   2) Service status:
-       ssh $NODE 'OC_UID=\$(id -u $OC_USER); sudo -H -u $OC_USER env XDG_RUNTIME_DIR=/run/user/\$OC_UID systemctl --user status openclaw-gateway --no-pager -l'
+       ssh $NODE 'systemctl --user status openclaw-gateway --no-pager -l'
 
   3) If SSH itself is unreachable, break-glass via the OCI serial console
      (see docs/FIELD-MANUAL.md → "Emergency Recovery").

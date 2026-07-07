@@ -44,7 +44,7 @@ TIMEZONE="${TIMEZONE:-}"
 # 6 GB RAM → 4 GB swap; 12 GB → 8 GB; 24 GB → 16 GB.  Override with SWAP_GB=<N>.
 SWAP_GB="${SWAP_GB:-}"
 
-# Model allowlist — primary + 5 free fallbacks.  Every slug is prefixed
+# Model allowlist — primary + 4 free fallbacks.  Every slug is prefixed
 # with "openrouter/" so it routes through the OpenRouter plugin (one API
 # key) rather than per-provider plugins (which would each need their own
 # key).  If you see "Unknown model: X" in the logs, a missing prefix is
@@ -97,7 +97,11 @@ say "Ubuntu: ${VERSION_ID:-?}"
 
 # ── Collect inputs (if not passed via env) ────────────────────────────────────
 [[ -z "$ASSISTANT_NAME"     ]] && ask "Assistant name (e.g. Jarvis, Friday, Watson, or whatever you like)" ASSISTANT_NAME
-[[ -z "$TAILSCALE_AUTH_KEY" ]] && ask "Tailscale auth key (tskey-auth-...)" TAILSCALE_AUTH_KEY 1
+# Only ask for a Tailscale auth key when the VM isn't already on the tailnet
+# (the Field Manual's §5.1 flow joins it before this installer runs).
+if [[ -z "$TAILSCALE_AUTH_KEY" ]] && ! { command -v tailscale >/dev/null && sudo tailscale status >/dev/null 2>&1; }; then
+  ask "Tailscale auth key (tskey-auth-...)" TAILSCALE_AUTH_KEY 1
+fi
 [[ -z "$OPENROUTER_API_KEY" ]] && ask "OpenRouter API key (sk-or-...)"      OPENROUTER_API_KEY 1
 if [[ -z "$TIMEZONE" ]]; then
   read -r -p "  Timezone [America/Edmonton — press Enter to accept, or type e.g. America/New_York]: " TIMEZONE
@@ -246,6 +250,7 @@ if ! command -v tailscale >/dev/null; then
   curl -fsSL https://tailscale.com/install.sh | sh
 fi
 if ! sudo tailscale status >/dev/null 2>&1; then
+  [[ -n "$TAILSCALE_AUTH_KEY" ]] || die "VM is not on the tailnet and no Tailscale auth key was provided (generate one at login.tailscale.com/admin/settings/keys, or join first per Field Manual §5.1)."
   sudo tailscale up --ssh --auth-key="$TAILSCALE_AUTH_KEY" --accept-routes=false
   say "   tailnet joined"
 else
@@ -270,9 +275,11 @@ chmod 700 "$HOME/.openclaw"
 # Secure token generation
 GATEWAY_TOKEN="$(openssl rand -hex 24)"
 
-# Build models JSON blocks via jq to avoid quoting hell.  The heartbeat
-# model must appear in the registry (as a key) but NOT in the fallbacks
-# chain — it's the primary for the heartbeat role, not a fallback.
+# Build models JSON blocks via jq to avoid quoting hell (this builds fresh
+# JSON strings for the initial install — it never parses an existing config).
+# The heartbeat model must appear in the registry (as a key); it also sits in
+# the main fallbacks chain, which is fine — the heartbeat ROLE just pins it
+# as primary for background check-ins.
 ALL_MODELS=("${MODELS[@]}" "$HEARTBEAT_MODEL")
 MODELS_JSON=$(printf '%s\n' "${ALL_MODELS[@]}" | jq -R . | jq -s 'map({(.): {}}) | add')
 FALLBACKS_JSON=$(printf '%s\n' "${MODELS[@]}" | jq -R . | jq -s '.[1:]')

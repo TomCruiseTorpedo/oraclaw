@@ -16,7 +16,7 @@ Every agent job runs through one of three model slots:
 
 - **Primary** — the model your agent uses for real work: chat replies, tool calls, reasoning. This is the one you care about most. In this kit: `openrouter/nvidia/nemotron-3-super-120b-a12b:free`.
 - **Fallbacks** — an ordered list tried in sequence if the primary fails (timeout, rate limit, model taken down, upstream auth error). The first one that answers wins. In this kit, the chain is: gemma → minimax → glm → qwen.
-- **Heartbeat** — the model that runs the background cron heartbeat jobs (status checks every 5–60 minutes depending on time of day). These should be cheap and fast — they're not doing deep reasoning, just checking in. In this kit: `openrouter/z-ai/glm-4.5-air:free` (35B parameters — mid-sized, tool-use reliable; chosen for the heartbeat lane after the smaller Llama 3.2 3B Instruct started showing transient free-tier exhaustion).
+- **Heartbeat** — the model that runs the background cron heartbeat jobs (the installer schedules these every 6 hours). These should be cheap and fast — they're not doing deep reasoning, just checking in. In this kit: `openrouter/z-ai/glm-4.5-air:free` (35B parameters — mid-sized, tool-use reliable; chosen for the heartbeat lane after the smaller Llama 3.2 3B Instruct started showing transient free-tier exhaustion).
 
 Configuration lives in `~/.openclaw/openclaw.json` under `agents.defaults`:
 
@@ -116,7 +116,7 @@ Add `openrouter/google/gemma-2-9b-it:free` as a key in `agents.defaults.models`.
 
 **"No API key found for provider X"** — You're routing through a native provider plugin (e.g. `google/...` hits the Google plugin, which needs a Google key). Re-prefix the slug with `openrouter/` and it'll route through your OpenRouter key instead.
 
-**"Model available on OpenRouter but OpenClaw rejects it"** — OpenClaw's internal model catalogue (under `~/.openclaw/agents/main/agent/models.json`) may not list the slug. Three options: (a) use a slug that IS in the catalogue, (b) add the slug to the catalogue by hand (see `FIELD-MANUAL.md` appendix), (c) wait for an OpenClaw update that expands the stock catalogue.
+**"Model available on OpenRouter but OpenClaw rejects it"** — OpenClaw's internal model catalogue (under `~/.openclaw/agents/main/agent/models.json`) may not list the slug. Three options: (a) use a slug that IS in the catalogue, (b) add the slug to the catalogue by hand in `~/.openclaw/agents/main/agent/models.json` (plain JSON, unlike `openclaw.json`) and restart, (c) wait for an OpenClaw update that expands the stock catalogue.
 
 **"Heartbeats are using the primary model, not my heartbeat override"** — Confirm you edited `agents.defaults.heartbeat.model`, not `agents.defaults.model.primary`. Restart the gateway. Then watch the next heartbeat run: `ssh my-oraclaw 'journalctl --user -u openclaw-gateway -f | grep "agent:main:main:heartbeat"'` — the `model=` field on the run-start line tells you which one fired.
 
@@ -137,5 +137,5 @@ Add `openrouter/google/gemma-2-9b-it:free` as a key in `agents.defaults.models`.
 ## Next steps
 
 - Test a model swap on a non-critical VM first if you have one.
-- Set up `scripts/verify-self-heal.sh` as a post-change smoke test — it confirms the gateway recovers from a forced restart after your config change.
+- After a swap, smoke-test recovery: `ssh my-oraclaw 'systemctl --user restart openclaw-gateway'`, then confirm `curl -m 3 http://127.0.0.1:18789/health` returns 200 on the VM within a minute.
 - Read `docs/RECOVERY.md` if you ever see `502` after restarting the gateway.

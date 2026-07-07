@@ -69,7 +69,7 @@ OpenClaw is an AI "agentic harness" — think of it like Cursor or Claude Code, 
 - An **OpenRouter account + API key**. Sign up at [openrouter.ai](https://openrouter.ai). The free tier via API is capped at **50 calls/day** — fine for trying it, tight for daily use. A one-time **$10 USD top-up** raises the free-model cap to **1000 calls/day** and is **strongly recommended on day one** — you are already adding a credit card to Oracle, and OpenRouter will not charge you per call on free models. The $10 USD sits on your account until you actually burn it (which could take years on free models).
 - A **Tailscale account** (free personal tier) at [tailscale.com](https://tailscale.com). **While you're there making the account, go ahead and download the Tailscale app for your client machine (Mac or Windows 11 PC).** The download link is right there on the signup / download page — takes 30 seconds. Doing it now saves time later; the bootstrap script in Section 4 handles installation fallback if you didn't. By the end of setup Tailscale lives in **two places under your single account**:
   - On your **client machine** (Mac or Windows 11 PC) — a menu-bar/tray app with a GUI. Install now (via tailscale.com while you're there) OR let the Section 4 bootstrap install it via Homebrew / winget.
-  - On the **Oracle Cloud VM** — a background service (`tailscaled`). **You do NOT install this yourself.** The `install-oraclaw.sh` installer runs it on the VM in Section 6 for you.
+  - On the **Oracle Cloud VM** — a background service (`tailscaled`). You install this with one command in §5.1 (so the client bootstrap can set up the `my-oraclaw` SSH alias); the §6 installer double-checks and can also join the tailnet itself with an auth key if the VM somehow isn't on it yet.
   - Both show up on the same tailnet, so your client can SSH + reach the dashboard on the VM even though the VM has no public HTTPS port open.
   - Background reading, optional: [OpenClaw's Tailscale integration docs](https://docs.openclaw.ai/gateway/tailscale) + [Tailscale's blog post on OpenClaw + Tailscale](https://tailscale.com/blog/openclaw-tailscale-aperture-serve) (the blog also discusses Aperture — that's a separate Tailscale AI-gateway product this kit does **not** use; ignore the Aperture sections and read the `tailscale serve` parts).
 - A **GitHub account** (free) at [github.com](https://github.com). You'll use this to clone this repo onto your client machine.
@@ -97,7 +97,7 @@ For specific failures after setup, **[docs/WHEN-THINGS-GO-WRONG.md](WHEN-THINGS-
 
 You'll need an SSH key **before you create your VM** in Section 3. Oracle Cloud locks the SSH key onto the VM at creation time, and changing it afterward means using the OCI serial console — tedious. Get the key ready first and Section 3 becomes a single uninterrupted pass.
 
-Your SSH key lives on your client machine (Mac or Windows 11 PC). The *public* half gets pasted into Oracle Cloud in Section 3.3, step 9. The *private* half stays on your machine forever — if you ever share it, regenerate the pair immediately.
+Your SSH key lives on your client machine (Mac or Windows 11 PC). The *public* half gets pasted into Oracle Cloud at §3.3 "Step 3 continued — Add SSH keys". The *private* half stays on your machine forever — if you ever share it, regenerate the pair immediately.
 
 **Easiest path:** clone this repo first, then run the tiny `generate-ssh-key` script. The script detects if you already have a key (leaves it alone) or creates a new one, and prints the public half in a big green block with clear instructions for where to paste it.
 
@@ -168,7 +168,7 @@ ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...long-base64-stuff...xEiKz7 you@example.com
 
 > **Security:** don't share the private key file (the one at `~/.ssh/id_ed25519` without the `.pub`). If it leaks, delete it and re-run the script — it'll generate a fresh pair.
 
-> **I'd really rather not touch a terminal at all**, can I let Oracle make the key for me? Yes — in Section 3.3 step 9 you can pick "Generate a key pair for me" and Oracle will download both halves as files. You'll need to move the downloaded private key into `~/.ssh/` with the right name + permissions before the client bootstrap works. Ask your helper or an AI assistant to walk you through that when the time comes.
+> **I'd really rather not touch a terminal at all**, can I let Oracle make the key for me? Yes — at §3.3 "Step 3 continued — Add SSH keys" you can pick "Generate a key pair for me" and Oracle will download both halves as files. You'll need to move the downloaded private key into `~/.ssh/` with the right name + permissions before the client bootstrap works. Ask your helper or an AI assistant to walk you through that when the time comes.
 
 ### Security note
 
@@ -290,7 +290,7 @@ OCI's "Create compute instance" is a **4-step wizard**: Basic information → Se
 #### Step 1 — Basic information
 
 - **Name:** something memorable — e.g. `my-oraclaw`, `jarvis`, `friday`. Lowercase, no spaces. *This becomes your Tailscale hostname later.* Oracle's default `instance-<timestamp>` is legal but uselessly ugly; change it.
-- **Create in compartment:** your **subcompartment** (e.g. `claws`). If you see `tomcruisemissile (root)` or similar expanded at the top of the dropdown, DO NOT pick that; expand the tree and pick your subcompartment below it. Section 3.1 was specifically to give you this subcompartment — use it.
+- **Create in compartment:** your **subcompartment** (e.g. `claws`). If you see `yourcompany (root)` or similar expanded at the top of the dropdown, DO NOT pick that; expand the tree and pick your subcompartment below it. Section 3.1 was specifically to give you this subcompartment — use it.
 - **Availability domain (AD):** AD 1 (whatever `dVtA:...-AD-1` is labelled). Only one is shown on Always Free; don't overthink it.
 - **Advanced options** (expand the caret):
   - **Capacity type: On-demand capacity** (the default). NOT "Preemptible" (that can get reclaimed at any time); NOT "Capacity reservation" (that costs money); NOT "Compute cluster" (RDMA workloads, not us).
@@ -432,7 +432,7 @@ This installs: Xcode Command Line Tools → Homebrew → git, mosh, tmux, jq →
    bash ~/oraclaw/scripts/bootstrap-mac.sh
    ```
 
-4. Follow the prompts. When it shows your SSH public key, **that's what you paste into Oracle Cloud in §3.3 step 9** if you haven't already.
+4. Follow the prompts. When it shows your SSH public key, **that's what you paste into Oracle Cloud at §3.3 "Step 3 continued — Add SSH keys"** if you haven't already.
 5. When it asks for the Tailscale hostname and subdomain — leave the script open in one Terminal window and do Section 5 first.
 
 **Don't have a Tailscale account yet?** No problem — the bootstrap opens the Tailscale app and prompts you to log in. On the login screen, click **Sign up** (or just log in with Google, GitHub, Microsoft, or Apple — Tailscale will create your account automatically on first login). Free personal tier supports up to 100 devices, which is way more than you'll ever need.
@@ -466,7 +466,7 @@ This installs: git, Tailscale, jq via **winget** → generates an SSH key → ad
    & $env:USERPROFILE\oraclaw\scripts\bootstrap-windows.ps1
    ```
 
-6. Follow the prompts. When it shows your SSH public key, **that's what you paste into Oracle Cloud in §3.3 step 9** if you haven't already.
+6. Follow the prompts. When it shows your SSH public key, **that's what you paste into Oracle Cloud at §3.3 "Step 3 continued — Add SSH keys"** if you haven't already.
 7. When it asks for the Tailscale hostname and subdomain — leave the PowerShell window open and do Section 5 first.
 
 **Don't have a Tailscale account yet?** The bootstrap opens a browser window for Tailscale login. On that screen, click **Sign up** (or log in with Google, GitHub, Microsoft, or Apple — Tailscale creates the account automatically on first login). Free personal tier supports up to 100 devices.
@@ -491,7 +491,7 @@ Both will sit on the same tailnet. Once that's true, you can SSH to the VM using
 SSH into the VM using its public IP (one-time — we'll switch to Tailscale after):
 
 ```bash
-ssh ubuntu@<public-ip-from-§3.3-step-12>
+ssh ubuntu@<public-ip>   # shown on the instance page once it is Running (end of §3.3)
 ```
 
 First connection will print a fingerprint warning (`The authenticity of host … can't be established`). Type `yes` and press Enter — that pins the host key so future connects are silent. If you ever see this warning on a *later* connection without having rebuilt the VM, stop and investigate: it means either a man-in-the-middle attempt, or the VM was recreated and legitimately has a new host key.
@@ -567,7 +567,7 @@ The script asks four things:
 | Prompt | What to enter |
 |--------|---------------|
 | **Assistant name** | A name for your AI. Examples: `Jarvis`, `Friday`, `Watson`, `Penny`, `Claude`, or anything you like. |
-| **Tailscale auth key** | Go to [login.tailscale.com/admin/settings/keys](https://login.tailscale.com/admin/settings/keys) → **Generate auth key** → **Reusable**: No, **Ephemeral**: No, **Tags**: (leave blank). Copy the `tskey-auth-…` string. |
+| **Tailscale auth key** | Only asked if the VM isn't already on the tailnet — if you followed §5.1 this prompt is skipped. Otherwise: go to [login.tailscale.com/admin/settings/keys](https://login.tailscale.com/admin/settings/keys) → **Generate auth key** → **Reusable**: No, **Ephemeral**: No, **Tags**: (leave blank). Copy the `tskey-auth-…` string. |
 | **OpenRouter API key** | See the callout below. |
 | **Timezone** | Press Enter for `America/Edmonton`, or type your own — e.g. `America/New_York` (NYC), `America/Toronto` (Toronto/Montreal/Ottawa), `America/Vancouver` (Vancouver/Seattle), `America/Chicago` (Winnipeg/Regina/Saskatoon/Chicago), `Europe/London`, `Asia/Tokyo`. Find yours in the [IANA tz list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). |
 
@@ -990,19 +990,36 @@ You can also fill in the other fields in `IDENTITY.md` (Name, Vibe, Emoji) — t
 
 ## Appendix C: Upgrading Node Version
 
+Two things trip people up here: (1) nvm installs each Node version into its own
+directory, so global npm packages — including openclaw itself — do NOT carry
+over; you must reinstall openclaw under the new Node. (2) The systemd unit's
+`ExecStart` hardcodes the Node version in TWO places (the `bin/node` binary and
+the `lib/node_modules` path), so both must be repointed.
+
 ```bash
 ssh my-oraclaw
 source ~/.nvm/nvm.sh
-nvm install 24.15.0             # Or a newer LTS — check https://nodejs.org/en/
-nvm alias default 24.15.0
-nvm use 24.15.0
+NEW=24.18.0                     # Or a newer LTS — check https://nodejs.org/en/
+nvm install "$NEW"
+nvm alias default "$NEW"
+nvm use "$NEW"
 
-# Update the systemd unit to point to the new node binary:
-sed -i "s|/node/v[0-9.]*/bin/openclaw-gateway|/node/v24.15.0/bin/openclaw-gateway|" \
+# openclaw does not carry over between Node versions — reinstall it:
+npm install -g openclaw@latest
+
+# Repoint BOTH version paths in the unit (binary + lib) to the new Node:
+sed -i "s|/node/v[0-9.]*/|/node/v${NEW}/|g" \
     ~/.config/systemd/user/openclaw-gateway.service
 
 systemctl --user daemon-reload
 systemctl --user restart openclaw-gateway
+
+# Verify before removing anything:
+curl -m 3 http://127.0.0.1:18789/health    # → {"ok":true,...}
+node -v                                     # → v24.18.0 (your $NEW)
+
+# Only after /health is green, optionally remove the old version:
+# nvm uninstall <old-version>
 ```
 
 ---

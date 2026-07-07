@@ -2,7 +2,7 @@
 #
 # install-shell-utils.sh — retrofit the shell QoL utilities onto an
 # existing OCI OpenClaw VM. New installs already include these via
-# install-openclaw-oci.sh; this script is for nodes that predate that
+# install-oraclaw.sh; this script is for nodes that predate that
 # change.
 #
 # Installs: ripgrep, fzf, zoxide, fd-find, eza, bat, tree, net-tools,
@@ -41,7 +41,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q \
     pandoc fd-find curl ca-certificates
 
 # Ubuntu ships fd as "fdfind" and bat as "batcat" — wire canonical names
-# into /usr/local/bin (matches install-openclaw-oci.sh so PATH lookups
+# into /usr/local/bin (matches install-oraclaw.sh so PATH lookups
 # resolve without extra profile plumbing).
 for pair in "fdfind fd" "batcat bat"; do
     src=$(echo "$pair" | awk '{print $1}')

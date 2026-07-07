@@ -104,7 +104,7 @@ Oraclaw's Field Manual Section 1.5 says to generate an SSH key.  I've never
 done that before.  I'm on <Mac or Windows 11>.  Walk me through running
 scripts/generate-ssh-key.sh (or .ps1) end to end, including opening my
 terminal.  When it prints the key, tell me exactly how to paste it into
-Oracle Cloud's Section 3.3 step 9.
+Oracle Cloud's §3.3 "Add SSH keys" step.
 ```
 
 ### "My Oracle VM got created but I can't SSH into it"

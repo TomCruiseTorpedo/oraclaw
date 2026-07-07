@@ -2,7 +2,7 @@
 
 **Read this page if:** you clicked the `Update` button in the OpenClaw Control UI, and now the dashboard won't load or shows a `502` error.
 
-**The short version:** your gateway process died during the update and didn't come back. One SSH command brings it back. If you installed this kit from `install-oraclaw.sh` version 1.1 or later, your VM already has auto-recovery safeguards — most of the time you won't have to do anything; the gateway comes back on its own within about a minute. This page covers what to do when you need to help it along.
+**The short version:** your gateway process died during the update and didn't come back. One SSH command brings it back. If you installed this kit with `install-oraclaw.sh` (any recent checkout), your VM already has auto-recovery safeguards — most of the time you won't have to do anything; the gateway comes back on its own within about a minute. This page covers what to do when you need to help it along.
 
 ---
 
@@ -80,7 +80,7 @@ A few habits reduce the odds of ever coming back here:
 - **Keep an SSH terminal open** on your VM before clicking `Update` in the dashboard. If anything goes wrong, you already have the access you need.
 - **Update during quiet hours**, not when someone needs the assistant. Recovery takes 60–90 seconds even in the happy case.
 - **Skip updates that promise only "minor improvements".** Wait for changelog entries that matter. Every update is a chance for this failure mode; fewer updates = fewer chances.
-- **Rerun `install-oraclaw.sh` or the Ansible role** after a major OpenClaw version bump. The safeguards are idempotent — re-running costs nothing and picks up any improvements in the kit.
+- **Rerun `install-oraclaw.sh`** after a major OpenClaw version bump. The safeguards are idempotent — re-running costs nothing and picks up any improvements in the kit.
 
 ---
 
@@ -90,7 +90,13 @@ A few habits reduce the odds of ever coming back here:
 - `docs/CHEATSHEET.md` — one-page ops reference
 - `docs/MODELS.md` — how the model chain works, how to swap primary vs heartbeat models
 - `scripts/recover-gateway.sh` — the scripted one-liner
-- `scripts/verify-self-heal.sh` — proves the auto-recovery is working without you having to wait for a real incident
+
+To prove the auto-recovery works without waiting for a real incident: kill the
+gateway on purpose and watch it come back —
+`ssh my-oraclaw 'systemctl --user kill -s SIGKILL openclaw-gateway'`, then poll
+`curl -m 3 http://127.0.0.1:18789/health` on the VM until it returns 200
+(usually under 30 seconds via Restart=always; worst case the watchdog catches
+it within ~90 seconds).
 
 ---
 
